@@ -4,10 +4,9 @@ const env = (name) => process.env[name] || "";
 const supabaseUrl = () => env("SUPABASE_URL").replace(/\/$/, "");
 const serviceKey = () => env("SUPABASE_SERVICE_ROLE_KEY");
 
-const json = (body, statusCode = 200) => ({
-  statusCode,
+const json = (body, statusCode = 200) => new Response(JSON.stringify(body), {
+  status: statusCode,
   headers: JSON_HEADERS,
-  body: JSON.stringify(body),
 });
 
 const readBody = (event) => {
@@ -72,7 +71,7 @@ async function authRoute(event, parts) {
     const returnTo = new URLSearchParams(event.rawQuery || "").get("returnTo") || "/";
     const redirectTo = `${event.headers?.host ? `https://${event.headers.host}` : ""}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
     const url = `${supabaseUrl()}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo)}`;
-    return { statusCode: 302, headers: { Location: url }, body: "" };
+    return new Response(null, { status: 302, headers: { Location: url } });
   }
   const actions = {
     login: ["token", "password"],
