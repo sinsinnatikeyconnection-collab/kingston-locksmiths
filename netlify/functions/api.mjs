@@ -229,7 +229,7 @@ async function functionRoute(event, name) {
   return json({ error: `Unsupported function: ${name}` }, 404);
 }
 
-export default async function handler(event) {
+export async function handler(event) {
   try {
     const rawPath = event.path || new URL(event.rawUrl || "https://localhost/api").pathname;
     const path = rawPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
@@ -243,3 +243,5 @@ export default async function handler(event) {
     return json({ error: error.message || "Internal server error" }, 500);
   }
 }
+
+export default handler;
