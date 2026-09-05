@@ -128,19 +128,27 @@ async function entityRoute(event, parts) {
   if (!user && ((method === "GET" && !publicReads.has(entity)) || (method !== "GET" && !publicCreates.has(entity)))) {
     return json({ error: "Authentication required" }, 401);
   }
-  if (method === "GET" && id) return json(await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=*`).then((rows) => rows[0] || null));
+  const publicRead = async (operation, fallback) => {
+    try {
+      return await operation();
+    } catch (error) {
+      if (publicReads.has(entity) && /schema cache|relation .* does not exist/i.test(String(error.message))) return fallback;
+      throw error;
+    }
+  };
+  if (method === "GET" && id) return json(await publicRead(() => supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=*`).then((rows) => rows[0] || null), null));
   if (method === "GET") {
     const query = queryString(event);
     const limit = Math.min(Number(query.get("limit") || 100), 200);
     const order = query.get("sort") || "-created_date";
     const column = order.replace(/^-/, "");
     const direction = order.startsWith("-") ? "desc" : "asc";
-    return json(await supabase(`/rest/v1/${table}?select=*&order=${column}.${direction}&limit=${limit}`));
+    return json(await publicRead(() => supabase(`/rest/v1/${table}?select=*&order=${column}.${direction}&limit=${limit}`), []));
   }
   if (method === "POST" && parts[2] === "search") {
     const filters = await readBody(event);
     const query = Object.entries(filters).map(([key, value]) => `${key}=eq.${encodeURIComponent(String(value))}`).join("&");
-    return json(await supabase(`/rest/v1/${table}?select=*&${query}`));
+    return json(await publicRead(() => supabase(`/rest/v1/${table}?select=*&${query}`), []));
   }
   if (method === "POST") return json(await supabase(`/rest/v1/${table}`, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(await readBody(event)) }).then((rows) => rows[0] || rows));
   if (method === "PATCH" && id) return json(await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(await readBody(event)) }).then((rows) => rows[0] || null));
