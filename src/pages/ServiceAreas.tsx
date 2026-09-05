@@ -1,56 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Navigation, ChevronRight } from "lucide-react";
+import { MapPin, Navigation, ChevronRight, Locate } from "lucide-react";
 import PageShell from "@/components/apex/PageShell";
-
-interface Region { name: string; note: string; cities: string[] }
-
-const REGIONS: Region[] = [
-  {
-    name: "Cincinnati, OH",
-    note: "Home base — full mobile + shop service across the city and metro.",
-    cities: ["Downtown Cincinnati", "Clifton", "Hyde Park", "Oakley", "Mount Adams", "West Side", "Northern Hills"],
-  },
-  {
-    name: "Northern Kentucky",
-    note: "Rapid mobile dispatch across the river for keys, lockouts & diagnostics.",
-    cities: ["Covington", "Newport", "Florence", "Fort Thomas", "Erlanger", "Highland Heights", "Burlington"],
-  },
-  {
-    name: "Dayton, OH",
-    note: "Scheduled and emergency service for the Dayton corridor.",
-    cities: ["Dayton", "Kettering", "Beavercreek", "Centerville", "Huber Heights", "Miamisburg"],
-  },
-  {
-    name: "Tri-State Outskirts",
-    note: "Broader tri-state coverage for mobile emergency and heavy jobs.",
-    cities: ["Hamilton", "Middletown", "Lebanon", "Mason", "West Chester", "Fairfield", "Lawrenceburg, IN"],
-  },
-];
+import ServiceMap, { type FocusTarget } from "@/components/apex/ServiceMap";
+import { SERVICE_REGIONS } from "@/lib/serviceAreas";
 
 export default function ServiceAreas() {
+  const [focus, setFocus] = useState<FocusTarget | null>(null);
+  const trigger = (lat: number, lng: number, zoom: number) =>
+    setFocus((f) => ({ lat, lng, zoom, nonce: (f?.nonce ?? 0) + 1 }));
+
   return (
     <PageShell title="Service Areas" tagline="// Coverage Grid">
       <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16">
-        <p className="font-body text-sm text-muted-foreground max-w-2xl mb-10">
+        <p className="font-body text-sm text-muted-foreground max-w-2xl mb-8">
           Sinsinnati Key Connection covers the Greater Cincinnati tri-state area.
-          If you're within these regions and you're locked out, keyless, or
-          dead-on-the-road, we'll reach you.
+          Tap a region or city to center the map — if you're within these pins and
+          you're locked out, keyless, or dead-on-the-road, we'll reach you.
         </p>
 
-        <div className="grid md:grid-cols-2 gap-px bg-cyan/10 border border-cyan/10">
-          {REGIONS.map((r) => (
+        <ServiceMap regions={SERVICE_REGIONS} focusTarget={focus} />
+
+        <div className="grid md:grid-cols-2 gap-px bg-cyan/10 border border-cyan/10 mt-10">
+          {SERVICE_REGIONS.map((r) => (
             <div key={r.name} className="bg-titanium p-6">
               <div className="flex items-center gap-2 mb-2">
                 <MapPin className="w-4 h-4 text-cyan" />
-                <h2 className="font-heading text-lg uppercase text-data">{r.name}</h2>
+                <button
+                  onClick={() => trigger(r.center[0], r.center[1], 10)}
+                  className="group flex items-center gap-1.5 text-left"
+                >
+                  <h2 className="font-heading text-lg uppercase text-data group-hover:text-cyan transition-colors">{r.name}</h2>
+                  <Locate className="w-3.5 h-3.5 text-cyan/50 group-hover:text-cyan transition-colors" />
+                </button>
               </div>
               <p className="font-body text-sm text-muted-foreground mb-4">{r.note}</p>
               <div className="flex flex-wrap gap-2">
                 {r.cities.map((c) => (
-                  <span key={c} className="font-mono text-[10px] uppercase tracking-wider border border-cyan/20 px-2 py-1 text-data/80">
-                    {c}
-                  </span>
+                  <button
+                    key={c.name}
+                    onClick={() => trigger(c.lat, c.lng, 13)}
+                    className="font-mono text-[10px] uppercase tracking-wider border border-cyan/20 px-2 py-1 text-data/80 hover:border-cyan/60 hover:text-cyan transition-colors"
+                  >
+                    {c.name}
+                  </button>
                 ))}
               </div>
             </div>

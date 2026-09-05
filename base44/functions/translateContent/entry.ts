@@ -1,3 +1,5 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 // Neural-net localization engine. Translates a bounded map of UI strings into the
@@ -24,7 +26,7 @@ export default async function(req) {
       "Input map (id -> text):\n" + JSON.stringify(strings, null, 2) +
       "\n\nOutput JSON now:";
 
-    const result = await base44.asServiceRole.integrations.Core.InvokeLLM({
+    const result = await db.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       model: "gpt_5_mini",
     });

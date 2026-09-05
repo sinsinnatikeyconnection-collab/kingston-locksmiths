@@ -46,7 +46,7 @@ describe("IntakeForm multi-step flow", () => {
     await user.click(next);
 
     // Step 02 — Symptom Matrix.
-    expect(screen.getByText(/Symptom Matrix/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Symptom Matrix/i).length).toBeGreaterThan(0);
 
     // Back returns to step 01 with the entered identity intact.
     await user.click(screen.getByRole("button", { name: /Back/i }));

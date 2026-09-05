@@ -1,6 +1,8 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useEffect } from "react";
 import { Globe, Loader2, Check } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+
 import { getLanguage, setLanguage, subscribe } from "@/lib/i18n";
 
 const LANGS: string[] = ["English", "Spanish", "French", "German", "Portuguese", "Arabic", "Chinese", "Russian", "Vietnamese"];
@@ -37,7 +39,7 @@ export default function LanguageSwitcher({ originalMap, onTranslate }: LanguageS
       if (cached) {
         translations = JSON.parse(cached) as StringMap;
       } else {
-        const r = await base44.functions.invoke("translateContent", { language, strings: originalMap });
+        const r = await db.functions.invoke("translateContent", { language, strings: originalMap });
         translations = (r?.data?.translations as StringMap) || {};
         sessionStorage.setItem(cacheKey + language, JSON.stringify(translations));
       }

@@ -4,8 +4,18 @@ import { Image } from "@/components/ui/image";
 import { ChevronRight } from "lucide-react";
 import PageShell from "@/components/apex/PageShell";
 import ArScan from "@/components/apex/ArScan";
+import PriceEstimator from "@/components/apex/PriceEstimator";
 import { PILLARS } from "@/lib/servicesData";
 import ReconnectingBoundary from "@/components/apex/ReconnectingBoundary";
+
+// Map each service pillar to the booking wizard's problem category so the
+// "Book this service" button pre-selects it in the intake form.
+const PILLAR_CATEGORY: Record<string, string> = {
+  locksmithing: "Lost Keys / Security & Lockout",
+  electrical: "Electrical & Diagnostics",
+  performance: "Performance & Tuning",
+  mechanical: "Mechanical Repair",
+};
 
 export default function Services() {
   return (
@@ -57,7 +67,7 @@ export default function Services() {
                       Read full breakdown <ChevronRight className="w-3.5 h-3.5" />
                     </Link>
                     <Link
-                      to="/#intake"
+                      to={`/?category=${encodeURIComponent(PILLAR_CATEGORY[p.id] || "")}#intake`}
                       className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-cyan hover:gap-3 transition-all"
                     >
                       Book this service <ChevronRight className="w-4 h-4" />
@@ -68,6 +78,20 @@ export default function Services() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="max-w-[1100px] mx-auto px-6 lg:px-10 py-16 border-t border-cyan/10">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="font-mono text-xs uppercase tracking-[0.3em] text-cyan">// Instant Quote</span>
+        </div>
+        <h2 className="font-heading text-3xl uppercase text-data mb-3 leading-[0.95]">
+          Ballpark your <span className="text-cyan">budget</span>
+        </h2>
+        <p className="font-body text-sm text-muted-foreground max-w-2xl mb-8">
+          Pick a service, urgency, and vehicle to get a realistic labor range before you book. No
+          waiting on a callback for a ballpark — final quote lands after inspection.
+        </p>
+        <PriceEstimator />
       </section>
 
       <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 border-t border-cyan/10">

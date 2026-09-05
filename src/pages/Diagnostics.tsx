@@ -3,6 +3,7 @@ import PageShell from "@/components/apex/PageShell";
 import { useVinDecode } from "@/hooks/useVinDecode";
 import VinDecodePanel from "@/components/apex/VinDecodePanel";
 import VinPremiumPanel from "@/components/apex/VinPremiumPanel";
+import ModuleViewer3D from "@/components/apex/ModuleViewer3D";
 
 const VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;
 
@@ -29,7 +30,7 @@ export default function Diagnostics() {
           </div>
           <p className="font-mono text-[10px] text-muted-foreground mt-2">
             Free decode pulls NHTSA specs, recalls, complaints & NCAP ratings. A deep OEM
-            diagnostic report is synthesized and unlocked per-VIN behind Base44 Payments.
+            diagnostic report is synthesized and unlocked per-VIN through secure checkout.
           </p>
         </div>
 
@@ -38,6 +39,17 @@ export default function Diagnostics() {
         {valid && (
           <div className="mt-6">
             <VinPremiumPanel vin={vin} />
+          </div>
+        )}
+
+        {valid && data?.decoded && (
+          <div className="mt-8">
+            <ModuleViewer3D
+              year={data.decoded.year}
+              make={data.decoded.make}
+              model={data.decoded.model}
+              vin={vin}
+            />
           </div>
         )}
       </div>

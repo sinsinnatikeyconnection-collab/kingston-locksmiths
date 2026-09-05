@@ -1,9 +1,10 @@
+
 import React, { useRef, useState } from "react";
 import { ChevronRight, Phone, MousePointer2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 
 const HERO_IMG =
-  "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/a9927a5c5_generated_0d53ba2f.png";
+  "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/a9927a5c5_generated_0d53ba2f.png";
 
 interface SpotPos { x: number; y: number }
 
@@ -61,7 +62,7 @@ export default function Hero() {
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <div className="inline-flex items-center gap-2 mb-7 font-mono text-[11px] uppercase tracking-[0.3em] text-cyan/80 border border-cyan/30 px-3 py-1.5">
           <span className="w-1.5 h-1.5 bg-cyan rounded-full animate-pulse" />
-          Sinsinnati Key Connection // Cincinnati, OH — System Online
+          Sinsinnati Key Connection // Cincinnati, OH
         </div>
 
         <h1 className="font-heading text-5xl sm:text-7xl lg:text-8xl uppercase text-data leading-[0.95] tracking-tighter">

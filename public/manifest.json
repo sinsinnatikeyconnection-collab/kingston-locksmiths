@@ -1,14 +1,61 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 {
   "name": "Sinsinnati Key Connection",
   "short_name": "SKC",
-  "description": "Cincinnati automotive engineering & locksmith platform — lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, mail-in service & mobile lockout.",
+  "description": "Cincinnati automotive engineering & locksmith platform — lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, performance tuning, mail-in service & 24/7 mobile lockout.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#080809",
   "theme_color": "#080809",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["business", "automotive", "productivity"],
   "icons": [
-    { "src": "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" },
-    { "src": "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable" }
+    {
+      "src": "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
+      "sizes": "64x64",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book a Service",
+      "short_name": "Book",
+      "url": "/#intake",
+      "description": "Start the booking wizard"
+    },
+    {
+      "name": "Mail-In Service",
+      "short_name": "Mail-In",
+      "url": "/mail-in",
+      "description": "Ship a part for repair or cloning"
+    },
+    {
+      "name": "Knowledge Base",
+      "short_name": "FAQ",
+      "url": "/knowledge",
+      "description": "Searchable AI knowledge base"
+    },
+    {
+      "name": "Customer Portal",
+      "short_name": "Portal",
+      "url": "/portal"
+    }
   ]
 }

@@ -4,5 +4,9 @@ Disallow: /admin
 Disallow: /admin-dashboard
 Disallow: /godmode
 Disallow: /portal
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
 
 Sitemap: https://www.kingston-locksmiths.com/sitemap.xml

@@ -1,10 +1,22 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" sizes="64x64" />
-    <link rel="apple-touch-icon" href="https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" />
+    <link rel="icon" type="image/jpeg" href="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" sizes="64x64" />
+    <link rel="apple-touch-icon" href="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Pre-hydration boot screen: dark cyberpunk paint so the page is never a
+         blank white shell before the JS/CSS bundle lands. React swaps #root on mount. -->
+    <style>
+      html, body { background-color: #080809; color: #f0f0f0; margin: 0; }
+      #root { min-height: 100vh; min-height: 100dvh; }
+      .skc-boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #080809; }
+      .skc-boot__ring { width: 34px; height: 34px; border: 2px solid rgba(0, 229, 255, 0.18); border-top-color: #00e5ff; border-radius: 9999px; animation: skc-spin 0.8s linear infinite; }
+      .skc-boot__label { position: absolute; margin-top: 90px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(0, 229, 255, 0.7); }
+      @keyframes skc-spin { to { transform: rotate(360deg); } }
+    </style>
     <meta name="theme-color" content="#080809" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -29,7 +41,7 @@
     <meta property="og:description" content="Cincinnati's most advanced automotive engineering platform. Lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, performance tuning, mail-in module service & mobile lockout. 513-568-2744 / 812-571-5765." />
     <meta property="og:url" content="https://www.kingston-locksmiths.com/" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
+    <meta property="og:image" content="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Sinsinnati Key Connection — Cincinnati automotive engineering & locksmith" />
@@ -38,7 +50,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Sinsinnati Key Connection | Kingston's Locksmiths" />
     <meta name="twitter:description" content="Cincinnati's advanced automotive engineering platform. Lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, performance tuning, mail-in service & mobile lockout. 513-568-2744 / 812-571-5765." />
-    <meta name="twitter:image" content="https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
+    <meta name="twitter:image" content="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
 
     <!-- Structured Data: Locksmith / LocalBusiness -->
     <script type="application/ld+json">
@@ -78,7 +90,7 @@
       "name": "Sinsinnati Key Connection",
       "alternateName": "Kingston's Locksmiths",
       "url": "https://www.kingston-locksmiths.com/",
-      "logo": "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
+      "logo": "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
       "email": ["tcincy23@gmail.com", "sinsinnatikeyconnection@gmail.com"],
       "telephone": ["+15135682744", "+18125715765"],
       "areaServed": { "@type": "AdministrativeArea", "name": "Greater Cincinnati Tri-State" },
@@ -148,7 +160,31 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="skc-boot">
+        <div class="skc-boot__ring"></div>
+        <div class="skc-boot__label">// Initializing</div>
+      </div>
+    </div>
+    <!-- Boot failsafe: if React hasn't taken over #root within 8s, replace the
+         spinner with a no-JS fallback so the page is never stuck forever. -->
+    <script>
+      (function () {
+        try {
+          setTimeout(function () {
+            var root = document.getElementById('root');
+            if (!root) return;
+            if (!root.querySelector('.skc-boot')) return;
+            root.innerHTML =
+              '<div style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080809;color:#f0f0f0;font-family:ui-monospace,monospace;text-align:center;padding:24px;">' +
+              '<div style="font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:#00e5ff;margin-bottom:16px">// Connection delayed</div>' +
+              '<div style="font-size:13px;max-width:420px;line-height:1.5;color:#9aa0a8;margin-bottom:24px">The interactive console is taking longer than expected to initialize. Check your connection and reload.</div>' +
+              '<button onclick="location.reload()" style="font-family:ui-monospace,monospace;font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:#080809;background:#00e5ff;border:0;padding:12px 22px;cursor:pointer">Reload</button>' +
+              '</div>';
+          }, 8000);
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

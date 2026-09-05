@@ -17,6 +17,21 @@ export default class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, info) {
+    // Vite stale-chunk failure after a redeploy: a tab holding an old
+    // index.html 404s on the old hashed chunk name. Auto-reload once so the
+    // browser fetches the fresh hashes; this self-heals, so skip logging a
+    // critical alert that would only spam the admin inbox for a transient
+    // deployment-cache mismatch.
+    const msg = String((error && error.message) || "");
+    if (/failed to fetch dynamically imported module|importing a module script failed|failed to fetch .*\.js/i.test(msg)) {
+      try {
+        if (!sessionStorage.getItem("skc_chunk_reload_attempt")) {
+          sessionStorage.setItem("skc_chunk_reload_attempt", "1");
+          window.location.reload();
+          return;
+        }
+      } catch (_) { /* fall through to log + show recovery UI */ }
+    }
     // Best-effort logging only — never rethrow, never propagate.
     try {
       console.error("ErrorBoundary caught:", error, info && info.componentStack);

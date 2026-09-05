@@ -13,7 +13,7 @@ export default function PageShell({ children, title, tagline }: PageShellProps) 
   return (
     <div className="bg-titanium min-h-screen">
       <Navbar />
-      <main className="pt-16">
+      <main id="main-content" className="pt-16 scroll-mt-16">
         {title && (
           <section className="relative border-b border-cyan/10 overflow-hidden">
             <div className="circuit-grid absolute inset-0 opacity-30 pointer-events-none" />

@@ -52,6 +52,11 @@
     overscroll-behavior: none;
   }
 
+  /* Universal Access — large-text mode scales every rem-based Tailwind size up ~18% */
+  html.text-lg-mode {
+    font-size: 118%;
+  }
+
   /* Keep interactive controls unselectable (iOS long-press menu suppression),
      while leaving paragraph text, vehicle details, and inputs copyable. */
   button,
@@ -82,6 +87,31 @@
   }
   .glow-heat {
     box-shadow: 0 0 0 1px rgba(255, 62, 0, 0.5), 0 0 22px rgba(255, 62, 0, 0.25);
+  }
+
+  /* Accessibility: visible keyboard focus + skip-to-content link */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
+  .skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateY(-150%);
+    z-index: 100;
+    padding: 0.5rem 0.75rem;
+    background: #00e5ff;
+    color: #080809;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    transition: transform 0.15s ease-in-out;
+  }
+  .skip-link:focus {
+    transform: translateY(0);
   }
   .circuit-grid {
     background-image:
@@ -143,3 +173,54 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #00e5ff;
 }
+
+/* Leaflet dark-theme restyle to match the Surgical Industrialism aesthetic */
+.leaflet-container {
+  background: #080809;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #101216;
+  color: #f0f0f0;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.2);
+}
+.leaflet-popup-content-wrapper { border-radius: 0; }
+.leaflet-popup-content { margin: 8px 10px; }
+.leaflet-popup-close-button { color: #0090a8 !important; }
+.leaflet-tooltip {
+  background: #101216;
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: 0;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.18);
+}
+.leaflet-bar a {
+  background: #101216;
+  color: #00e5ff;
+  border-color: rgba(0, 229, 255, 0.2);
+}
+.leaflet-bar a:hover { background: #161b20; }
+.leaflet-control-attribution {
+  background: rgba(8, 8, 9, 0.8) !important;
+  color: #6b7280;
+}
+.leaflet-control-attribution a { color: #00e5ff; }
+
+/* Hide any platform-provided chat / assistive widget / powered-by badge so
+   the production UI never shows third-party or platform UI noise. */
+div[class*="chat"],
+div[class*="widget"],
+button[class*="ask-ai"],
+iframe[src*="assistant"],
+[class*="powered-by"],
+[class*="ai-chat"],
+[class*="ask-ai"],
+[class*="chatbot"],
+[class*="ai-widget"] {
+  display: none !important;
+}
+
+/* Allow the skip-link to reappear above these hidden widgets if it matched. */
+.skip-link { display: flex !important; }

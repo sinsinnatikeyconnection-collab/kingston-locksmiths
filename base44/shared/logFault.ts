@@ -1,3 +1,5 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 // Centralized backend fault logger. Persists a SystemHealthLog record and, for
 // error/critical severity, emails the admin so silent failures surface fast.
 // Never throws — best-effort only; a logging failure must never break the
@@ -21,7 +23,7 @@ export async function logFault(base44, payload) {
     source: payload.source === "backend" ? "backend" : "frontend",
   };
   try {
-    await base44.asServiceRole.entities.SystemHealthLog.create(record);
+    await db.asServiceRole.entities.SystemHealthLog.create(record);
   } catch (_e) {
     /* entity write failure must not propagate */
   }
@@ -36,7 +38,7 @@ export async function logFault(base44, payload) {
       "SOURCE: " + record.source;
     for (const a of ADMINS) {
       try {
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await db.asServiceRole.integrations.Core.SendEmail({
           to: a,
           subject: "[SKC Health] " + severity.toUpperCase() + " \u2014 " + record.code,
           body: bodyTxt,

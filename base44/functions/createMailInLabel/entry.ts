@@ -1,3 +1,5 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 // Encrypted mail-in label generation via EasyPost.
 // - Blind shipping: the printed label routes to a configurable blind hub
 //   (EASYPOST_BLIND_DEST secret JSON) instead of the admin's private street;
@@ -8,6 +10,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { secrets, waitUntil } from 'base44:runtime';
 import { withRetry } from "../../shared/retry.ts";
 import { logFault } from "../../shared/logFault.ts";
+import { notifyCustomer } from "../../shared/notify.ts";
 
 const ADMINS = ["tcincy23@gmail.com", "sinsinnatikeyconnection@gmail.com"];
 const MASKED_LABEL = "SKC Secure Receiving Hub · Cincinnati, OH";
@@ -74,14 +77,14 @@ export default async function (req) {
 
     if (requestId) {
       try {
-        await base44.asServiceRole.entities.MailInRequest.update(requestId, {
+        await db.asServiceRole.entities.MailInRequest.update(requestId, {
           status, tracking_number: tracking, label_pdf_url: label || "",
         });
       } catch (_e) { /* non-fatal */ }
     }
 
     let rec = null;
-    try { rec = requestId ? await base44.asServiceRole.entities.MailInRequest.get(requestId) : null; } catch (_e) {}
+    try { rec = requestId ? await db.asServiceRole.entities.MailInRequest.get(requestId) : null; } catch (_e) {}
 
     // Instant admin alert — tracking + full shipper details.
     waitUntil((async () => {
@@ -98,7 +101,22 @@ export default async function (req) {
         "Destination (blind): " + MASKED + "\n" +
         "Status: " + status;
       for (const a of ADMINS) {
-        try { await base44.asServiceRole.integrations.Core.SendEmail({ to: a, subject: "MAIL-IN // Label Generated — " + (tracking || "pending"), body: bodyTxt }); } catch (_e) {}
+        try { await db.asServiceRole.integrations.Core.SendEmail({ to: a, subject: "MAIL-IN // Label Generated — " + (tracking || "pending"), body: bodyTxt }); } catch (_e) {}
+      }
+      // Best-effort confirmation to the customer (only registered users receive).
+      if (rec && rec.customer_email) {
+        const cBody = [
+          "Hi " + ((rec.customer_name || "there").split(" ")[0]) + ",",
+          "",
+          "Your mail-in service request for " + (rec.item_type || "your item") + " (" + (rec.vehicle || "n/a") + ") was received.",
+          tracking ? "Tracking number: " + tracking : "Tracking will be assigned shortly — we'll follow up.",
+          "Ship to: " + MASKED + " (the pre-paid label is being prepared and will be available in your portal).",
+          "",
+          "We'll email you at every stage: received → in progress → shipped back → completed.",
+          "",
+          "— Sinsinnati Key Connection",
+        ].join("\n");
+        await notifyCustomer(base44, rec.customer_email, "Mail-In Request Received — Sinsinnati Key Connection", cBody, "mail-in confirmation");
       }
     })().catch(() => {}));
 

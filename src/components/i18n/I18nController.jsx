@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
+import db from "@/api/base44Client";
+
+import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+
 import { getLanguage, subscribe } from "@/lib/i18n";
 
 // DOM-driven full-page translation. Any element tagged data-i18n="<id>" gets its
@@ -39,7 +41,7 @@ export default function I18nController() {
       }
       if (!translations) {
         try {
-          const r = await base44.functions.invoke("translateContent", { language, strings });
+          const r = await db.functions.invoke("translateContent", { language, strings });
           translations = r.data?.translations || {};
           sessionStorage.setItem(cacheKey + language, JSON.stringify(translations));
         } catch (e) {

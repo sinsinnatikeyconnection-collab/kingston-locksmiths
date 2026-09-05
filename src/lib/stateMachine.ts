@@ -17,14 +17,19 @@ export type MailInStatus =
   | "completed";
 export type InvoiceStatus = "unpaid" | "paid";
 
-export const BOOKING_TRANSITIONS: Readonly<Record<BookingStatus, readonly BookingStatus[]>> = Object.freeze({
+function freezeTransitions<S extends string>(table: Record<S, S[]>): Readonly<Record<S, readonly S[]>> {
+  Object.values(table).forEach((transitions) => Object.freeze(transitions));
+  return Object.freeze(table);
+}
+
+export const BOOKING_TRANSITIONS: Readonly<Record<BookingStatus, readonly BookingStatus[]>> = freezeTransitions<BookingStatus>({
   received: ["reviewing", "scheduled", "completed"],
   reviewing: ["scheduled", "completed"],
   scheduled: ["completed"],
   completed: [],
 });
 
-export const MAIL_IN_TRANSITIONS: Readonly<Record<MailInStatus, readonly MailInStatus[]>> = Object.freeze({
+export const MAIL_IN_TRANSITIONS: Readonly<Record<MailInStatus, readonly MailInStatus[]>> = freezeTransitions<MailInStatus>({
   requested: ["label_ready", "shipped", "received", "in_progress"],
   label_ready: ["shipped", "received"],
   shipped: ["received"],
@@ -34,7 +39,7 @@ export const MAIL_IN_TRANSITIONS: Readonly<Record<MailInStatus, readonly MailInS
   completed: [],
 });
 
-export const INVOICE_TRANSITIONS: Readonly<Record<InvoiceStatus, readonly InvoiceStatus[]>> = Object.freeze({
+export const INVOICE_TRANSITIONS: Readonly<Record<InvoiceStatus, readonly InvoiceStatus[]>> = freezeTransitions<InvoiceStatus>({
   unpaid: ["paid"],
   paid: [],
 });

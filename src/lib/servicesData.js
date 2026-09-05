@@ -1,10 +1,11 @@
+
 export const PILLARS = [
   {
     id: "locksmithing",
     num: "01",
     title: "Locksmithing & Security",
     tag: "Digital Immunity",
-    img: "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/c9180e468_generated_46057bd3.png",
+    img: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/c9180e468_generated_46057bd3.png",
     accent: "cyan",
     intro: "When it comes to vehicle security, we manipulate the core data — not just the door lock.",
     long:
@@ -80,7 +81,7 @@ export const PILLARS = [
     num: "02",
     title: "Electrical & Data Networks",
     tag: "Rolling Server Room",
-    img: "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/f69670e3c_generated_d8453c26.png",
+    img: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/f69670e3c_generated_d8453c26.png",
     accent: "cyan",
     intro: "While others guess, we use data, oscilloscopes, and factory software to pinpoint the exact failure in copper and code.",
     long:
@@ -156,7 +157,7 @@ export const PILLARS = [
     num: "03",
     title: "Performance Tuning",
     tag: "Horsepower Fluent",
-    img: "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/8d0087281_generated_6e7ee0c8.png",
+    img: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/8d0087281_generated_6e7ee0c8.png",
     accent: "heat",
     intro: "We don't just fix cars — we make them faster and optimize how they run. For those who speak the language of horsepower.",
     long:
@@ -225,7 +226,7 @@ export const PILLARS = [
     num: "04",
     title: "Mechanical & Powertrain",
     tag: "Heavy Metal Grit",
-    img: "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/aae62aaf0_generated_51d34c82.png",
+    img: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/aae62aaf0_generated_51d34c82.png",
     accent: "data",
     intro: "We aren't just a laptop guy. We have the heavy tools and the grit to rip a car to bare chassis and build it back up.",
     long:

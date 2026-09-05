@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
 import {
@@ -265,7 +267,7 @@ export default function AudioDiagnostic() {
       if (clipUrlRef.current) {
         const blob = await fetch(clipUrlRef.current).then((r) => r.blob());
         const file = new File([blob], "engine-sample.webm", { type: blob.type || "audio/webm" });
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        const { file_url } = await db.integrations.Core.UploadFile({ file });
         fileUrls = [file_url];
       }
       const sigText = signature
@@ -278,7 +280,7 @@ export default function AudioDiagnostic() {
         fileUrls ? "An engine audio sample is attached; cross-check audible cues against the measured signature, but rely primarily on reported symptoms." : "",
       ].filter(Boolean).join(" ");
 
-      const res = (await base44.functions.invoke("aiService", { kind: "diagnostic", symptoms: symptomText, fileUrls })) as DiagResponse;
+      const res = (await db.functions.invoke("aiService", { kind: "diagnostic", symptoms: symptomText, fileUrls })) as DiagResponse;
       if (res.data?.result) {
         setDiagnosis(res.data.result);
         setState("done");

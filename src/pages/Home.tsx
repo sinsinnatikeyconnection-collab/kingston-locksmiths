@@ -5,7 +5,6 @@ import FloatingCall from "@/components/apex/FloatingCall";
 import Hero from "@/components/apex/Hero";
 import TrustSeals from "@/components/apex/TrustSeals";
 import VerifiedBadges from "@/components/apex/VerifiedBadges";
-import AiAssistant from "@/components/apex/AiAssistant";
 import InstallPrompt from "@/components/apex/InstallPrompt";
 import DayNightAccent from "@/components/apex/DayNightAccent";
 import ReconnectingBoundary from "@/components/apex/ReconnectingBoundary";
@@ -36,7 +35,7 @@ export default function Home() {
   return (
     <div className="bg-titanium min-h-screen">
       <Navbar />
-      <main>
+      <main id="main-content" className="scroll-mt-16">
         <Hero />
         <TrustSeals />
         <VerifiedBadges />
@@ -63,7 +62,6 @@ export default function Home() {
       </main>
       <Footer />
       <FloatingCall />
-      <AiAssistant />
       <InstallPrompt />
       <Suspense fallback={null}><BehaviorEngine /></Suspense>
       <DayNightAccent />

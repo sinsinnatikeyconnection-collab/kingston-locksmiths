@@ -7,7 +7,7 @@ import { PILLARS } from "@/lib/servicesData";
 const accentColor = (a: string) => (a === "heat" ? "heat" : a === "data" ? "data" : "cyan");
 
 // Shared deep-breakdown renderer used by the four dedicated pillar pages.
-export default function PillarDetail({ id }: { id: string }) {
+export default function PillarDetail({ id, afterCapabilities }: { id: string; afterCapabilities?: React.ReactNode }) {
   const p = PILLARS.find((x) => x.id === id);
   if (!p) return null;
   const ac = accentColor(p.accent);
@@ -50,7 +50,7 @@ export default function PillarDetail({ id }: { id: string }) {
               // Capability Index
             </div>
             <ul className="grid sm:grid-cols-2 gap-x-6">
-              {p.points.map((pt, i) => (
+              {p.points.map((pt: string, i: number) => (
                 <li key={i} className="flex gap-3 py-2 border-t border-cyan/10 first:border-t-0">
                   <span className="font-mono text-[10px] text-cyan/70 mt-1 shrink-0">{String(i + 1).padStart(2, "0")}</span>
                   <span className="font-body text-sm text-data/90 leading-relaxed">{pt}</span>
@@ -61,6 +61,8 @@ export default function PillarDetail({ id }: { id: string }) {
         </div>
       </section>
 
+      {afterCapabilities}
+
       {/* deep technical breakdown */}
       <section className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8">
         <div className="flex items-center gap-3 mb-8">
@@ -68,7 +70,7 @@ export default function PillarDetail({ id }: { id: string }) {
           <h2 className="font-heading text-2xl sm:text-3xl uppercase text-data leading-tight">Full Technical Breakdown</h2>
         </div>
         <div className="grid lg:grid-cols-2 gap-px bg-cyan/10 border border-cyan/10">
-          {p.subservices.map((s, i) => (
+          {p.subservices.map((s: any, i: number) => (
             <article key={i} className="bg-titanium p-6 lg:p-8">
               <div className="flex items-start gap-3 mb-3">
                 <span className={`font-mono text-[10px] mt-1 shrink-0 ${ac === "heat" ? "text-heat" : "text-cyan"}`}>
@@ -82,7 +84,7 @@ export default function PillarDetail({ id }: { id: string }) {
               <p className="font-body text-sm text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">{s.detail}</p>
               <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-2">// Toolchain</div>
               <div className="flex flex-wrap gap-1.5">
-                {s.tools.map((t) => (
+                {s.tools.map((t: string) => (
                   <span key={t} className="font-mono text-[10px] text-data/80 border border-cyan/20 px-2 py-1 bg-blueprint/40">{t}</span>
                 ))}
               </div>
@@ -100,7 +102,7 @@ export default function PillarDetail({ id }: { id: string }) {
               <span className="font-mono text-[11px] uppercase tracking-widest text-cyan">// Our Process</span>
             </div>
             <ol className="space-y-4">
-              {p.process.map((st, i) => (
+              {p.process.map((st: any, i: number) => (
                 <li key={i} className="flex gap-3">
                   <span className="font-mono text-cyan text-sm shrink-0">{String(i + 1).padStart(2, "0")}</span>
                   <div>
@@ -117,7 +119,7 @@ export default function PillarDetail({ id }: { id: string }) {
               <span className="font-mono text-[11px] uppercase tracking-widest text-heat">// When To Call Us</span>
             </div>
             <ul className="space-y-2.5">
-              {p.symptoms.map((s, i) => (
+              {p.symptoms.map((s: string, i: number) => (
                 <li key={i} className="flex gap-3 font-body text-sm text-data/90 leading-relaxed">
                   <span className="font-mono text-heat text-xs mt-1 shrink-0">▸</span>
                   <span>{s}</span>
@@ -135,7 +137,7 @@ export default function PillarDetail({ id }: { id: string }) {
           <h2 className="font-mono text-xs uppercase tracking-[0.3em] text-cyan">// Common Questions</h2>
         </div>
         <div className="border border-cyan/10 divide-y divide-cyan/10">
-          {p.faqs.map((f, i) => (
+          {p.faqs.map((f: any, i: number) => (
             <div key={i} className="bg-titanium px-5 py-4">
               <div className="font-mono text-sm text-data mb-1.5">{f.q}</div>
               <p className="font-body text-sm text-muted-foreground leading-relaxed">{f.a}</p>

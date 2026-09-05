@@ -1,4 +1,5 @@
-import { base44 } from "@/api/base44Client";
+import db from "@/api/base44Client";
+
 
 export type HealthSeverity = "info" | "warning" | "error" | "critical";
 
@@ -18,11 +19,18 @@ export interface SystemHealthLogEntry {
 const seen = new Set<string>();
 
 export function logSystemHealth(entry: SystemHealthLogEntry): void {
-  const key = entry.component + "|" + entry.code + "|" + entry.message.slice(0, 80);
+  // Ghost-report guard: if a caller passes an entry with no message AND no
+  // code, there is nothing to report — skip the network call entirely so a
+  // misbehaving reporter can't generate a blank "FRONTEND_FAULT" admin alert.
+  const hasMessage = !!(entry.message && String(entry.message).trim());
+  const hasCode = !!(entry.code && String(entry.code).trim());
+  if (!hasMessage && !hasCode) return;
+  const msgSlice = hasMessage ? String(entry.message).slice(0, 80) : "";
+  const key = entry.component + "|" + entry.code + "|" + msgSlice;
   if (seen.has(key)) return;
   seen.add(key);
   try {
-    void base44.functions
+    void db.functions
       .invoke("logSystemHealth", { ...entry, source: "frontend" })
       .catch(() => {
         /* logging never surfaces to the user */

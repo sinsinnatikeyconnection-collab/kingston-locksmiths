@@ -10,9 +10,9 @@ import ScrollToTop from './components/ScrollToTop';
 import I18nController from '@/components/i18n/I18nController';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import Home from './pages/Home';
 
-// Lazy-load the page viewports so each route ships as its own chunk.
-const Home = React.lazy(() => import('./pages/Home'));
+// Lazy-load secondary page viewports so each route ships as its own chunk.
 const Services = React.lazy(() => import('./pages/Services'));
 const ServiceLocksmithing = React.lazy(() => import('./pages/ServiceLocksmithing'));
 const ServiceElectrical = React.lazy(() => import('./pages/ServiceElectrical'));
@@ -32,6 +32,9 @@ const ResetPassword = React.lazy(() => import('@/pages/ResetPassword'));
 const Portal = React.lazy(() => import('./pages/Portal'));
 const Admin = React.lazy(() => import('./pages/Admin'));
 const Diagnostics = React.lazy(() => import('./pages/Diagnostics'));
+const KnowledgeBase = React.lazy(() => import('./pages/KnowledgeBase'));
+const VinScan = React.lazy(() => import('./pages/VinScan'));
+const BtDiagnostic = React.lazy(() => import('./pages/BtDiagnostic'));
 
 function PageLoader() {
   return (
@@ -86,6 +89,9 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/mail-in" element={<MailIn />} />
         <Route path="/diagnostics" element={<Diagnostics />} />
+        <Route path="/vin-scan" element={<VinScan />} />
+        <Route path="/bt-diagnostic" element={<BtDiagnostic />} />
+        <Route path="/knowledge" element={<KnowledgeBase />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -102,7 +108,6 @@ const AuthenticatedApp = () => {
     </Suspense>
   );
 };
-
 
 function App() {
 

@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+
 import {
   ShieldAlert,
   Loader2,
@@ -18,10 +20,17 @@ import {
   Trash2,
   X,
   Award,
+  Upload,
+  ImageIcon,
+  ClipboardList,
+  DollarSign as DollarIcon,
+  Gift,
 } from "lucide-react";
+import LoyaltyAdminPanel from "@/components/apex/LoyaltyAdminPanel";
 import type {
   AppUser,
   BookingStatus,
+  BookingStage,
   Certificate,
   CertificateServiceType,
   CaseStudy,
@@ -47,13 +56,14 @@ const ACCENT: Record<ProblemCategory, "cyan" | "heat"> = {
   "Performance & Tuning": "heat",
 };
 
-type AdminTab = "bookings" | "revenue" | "cases" | "certs" | "health";
+type AdminTab = "bookings" | "revenue" | "cases" | "certs" | "loyalty" | "health";
 
 const TABS: { id: AdminTab; label: string; icon: IconType }[] = [
   { id: "bookings", label: "Bookings", icon: Car },
   { id: "revenue", label: "Revenue", icon: DollarSign },
   { id: "cases", label: "Case Studies", icon: FolderOpen },
   { id: "certs", label: "Certificates", icon: Award },
+  { id: "loyalty", label: "Loyalty", icon: Gift },
   { id: "health", label: "System Health", icon: ShieldAlert },
 ];
 
@@ -70,6 +80,33 @@ const NEXT_STATUS: Partial<Record<BookingStatus, BookingStatus>> = {
   received: "reviewing",
   reviewing: "scheduled",
   scheduled: "completed",
+};
+
+const STAGE_ORDER: BookingStage[] = ["booked", "diagnosing", "in_progress", "quality_check", "ready_for_pickup", "complete"];
+
+const STAGE_LABEL: Record<BookingStage, string> = {
+  booked: "Booked",
+  diagnosing: "Diagnosing",
+  in_progress: "In Progress",
+  quality_check: "Quality Check",
+  ready_for_pickup: "Ready for Pickup",
+  complete: "Complete",
+};
+
+const STAGE_TO_STATUS: Record<BookingStage, BookingStatus> = {
+  booked: "received",
+  diagnosing: "reviewing",
+  in_progress: "scheduled",
+  quality_check: "scheduled",
+  ready_for_pickup: "scheduled",
+  complete: "completed",
+};
+
+const STATUS_TO_STAGE_INV: Record<BookingStatus, BookingStage> = {
+  received: "booked",
+  reviewing: "diagnosing",
+  scheduled: "in_progress",
+  completed: "complete",
 };
 
 const SERVICE_TYPES: CertificateServiceType[] = ["ECU Clone", "Cluster Calibration", "Engine Swap", "Key Programming", "Module Programming", "Other"];
@@ -114,21 +151,21 @@ export default function Admin() {
     let unsub: (() => void) | undefined;
     (async () => {
       try {
-        const me = (await base44.auth.me()) as AppUser;
+        const me = (await db.auth.me()) as AppUser;
         setUser(me);
-        const list = (await base44.entities.ServiceBooking.list("-created_date", 200)) as ServiceBooking[];
+        const list = (await db.entities.ServiceBooking.list("-created_date", 200)) as ServiceBooking[];
         setBookings(list);
         const [inv, cs, ct, lg] = await Promise.all([
-          base44.entities.Invoice.filter({}).catch(() => []),
-          base44.entities.CaseStudy.list("order", 200).catch(() => []),
-          base44.entities.Certificate.list("-created_date", 200).catch(() => []),
-          base44.entities.SystemHealthLog.list("-created_date", 200).catch(() => []),
+          db.entities.Invoice.filter({}).catch(() => []),
+          db.entities.CaseStudy.list("order", 200).catch(() => []),
+          db.entities.Certificate.list("-created_date", 200).catch(() => []),
+          db.entities.SystemHealthLog.list("-created_date", 200).catch(() => []),
         ]);
         setInvoices(inv as Invoice[]);
         setCases(cs as CaseStudy[]);
         setCerts(ct as Certificate[]);
         setLogs(lg as SystemHealthLog[]);
-        unsub = base44.entities.ServiceBooking.subscribe((event: { type: string; data?: ServiceBooking; id?: string }) => {
+        unsub = db.entities.ServiceBooking.subscribe((event: { type: string; data?: ServiceBooking; id?: string }) => {
           setBookings((prev) => {
             if (event.type === "create" && event.data) return [event.data, ...prev];
             if (event.type === "update" && event.data) return prev.map((b) => (b.id === event.data!.id ? event.data! : b));
@@ -190,15 +227,22 @@ export default function Admin() {
     setEditingId(null);
   };
 
+  const reloadInvoices = async () => {
+    try {
+      const inv = (await db.entities.Invoice.filter({})) as Invoice[];
+      setInvoices(inv || []);
+    } catch (_e) { /* best-effort */ }
+  };
+
   const saveCase = async () => {
     if (!caseForm.image_url || !caseForm.title) return;
     const payload: Omit<CaseStudy, "id" | "created_date" | "updated_date" | "created_by_id"> & { id?: string } = {
       ...caseForm,
       order: Number(caseForm.order) || 0,
     };
-    if (editingId) await base44.entities.CaseStudy.update(editingId, payload);
-    else { await base44.entities.CaseStudy.create(payload); base44.functions.invoke("pingSearchEngines", {}).catch(() => {}); }
-    setCases((await base44.entities.CaseStudy.list("order", 200)) as CaseStudy[]);
+    if (editingId) await db.entities.CaseStudy.update(editingId, payload);
+    else { await db.entities.CaseStudy.create(payload); db.functions.invoke("pingSearchEngines", {}).catch(() => {}); }
+    setCases((await db.entities.CaseStudy.list("order", 200)) as CaseStudy[]);
     resetCaseForm();
   };
 
@@ -208,20 +252,20 @@ export default function Admin() {
   };
 
   const deleteCase = async (id: string) => {
-    await base44.entities.CaseStudy.delete(id);
+    await db.entities.CaseStudy.delete(id);
     setCases((prev) => prev.filter((c) => c.id !== id));
   };
 
   const saveCert = async () => {
     if (!certForm.owner_email || !certForm.vehicle || !certForm.service_type) return;
     const code = "SKC-" + Date.now().toString().slice(-6).toUpperCase();
-    await base44.entities.Certificate.create({ ...certForm, certificate_code: code });
-    setCerts((await base44.entities.Certificate.list("-created_date", 200)) as Certificate[]);
+    await db.entities.Certificate.create({ ...certForm, certificate_code: code });
+    setCerts((await db.entities.Certificate.list("-created_date", 200)) as Certificate[]);
     setCertForm(EMPTY_CERT);
   };
 
   const deleteCert = async (id: string) => {
-    await base44.entities.Certificate.delete(id);
+    await db.entities.Certificate.delete(id);
     setCerts((prev) => prev.filter((c) => c.id !== id));
   };
 
@@ -292,7 +336,7 @@ export default function Admin() {
               </div>
             ) : (
               <div className="space-y-3">
-                {visible.map((b) => (<BookingCard key={b.id} b={b} />))}
+                {visible.map((b) => (<BookingCard key={b.id} b={b} onReload={reloadInvoices} />))}
               </div>
             )}
           </>
@@ -425,6 +469,8 @@ export default function Admin() {
           </>
         )}
 
+        {tab === "loyalty" && <LoyaltyAdminPanel />}
+
         {tab === "health" && (
           <SystemHealthPanel logs={logs} />
         )}
@@ -433,16 +479,95 @@ export default function Admin() {
   );
 }
 
-function BookingCard({ b }: { b: ServiceBooking }) {
+interface BookingCardProps {
+  b: ServiceBooking;
+  onReload: () => void;
+}
+function BookingCard({ b, onReload }: BookingCardProps) {
   const [open, setOpen] = useState<boolean>(false);
+  const [busy, setBusy] = useState<boolean>(false);
+  const [noteDraft, setNoteDraft] = useState<string>("");
+  const [techName, setTechName] = useState<string>(b.technician_name || "");
+  const [invOpen, setInvOpen] = useState<boolean>(false);
+  const [invAmount, setInvAmount] = useState<string>("");
+  const [invDesc, setInvDesc] = useState<string>("");
   const Icon = (b.problem_category && CATEGORY_ICONS[b.problem_category]) || Car;
   const accent = (b.problem_category && ACCENT[b.problem_category]) || "cyan";
   const created = b.created_date ? new Date(b.created_date).toLocaleString("en-US", { timeZone: "America/New_York" }) : "";
 
-  const advance = async () => {
-    const ns = NEXT_STATUS[b.status];
-    if (!ns) return;
-    await base44.entities.ServiceBooking.update(b.id, { status: ns });
+  const stage: BookingStage =
+    b.progress_stage && STAGE_ORDER.includes(b.progress_stage)
+      ? b.progress_stage
+      : STATUS_TO_STAGE_INV[b.status] || "booked";
+  const stageIdx = STAGE_ORDER.indexOf(stage);
+
+  const setStage = async (s: BookingStage) => {
+    if (s === stage || busy) return;
+    setBusy(true);
+    try {
+      await db.entities.ServiceBooking.update(b.id, { progress_stage: s, status: STAGE_TO_STATUS[s] });
+    } catch (_e) { /* subscription will not fire; user can retry */ }
+    finally { setBusy(false); }
+  };
+
+  const addNote = async () => {
+    const text = noteDraft.trim();
+    if (!text || busy) return;
+    setBusy(true);
+    try {
+      const notes = [...(b.technician_notes || []), text];
+      const patch: Partial<ServiceBooking> = { technician_notes: notes };
+      if (techName.trim()) patch.technician_name = techName.trim();
+      await db.entities.ServiceBooking.update(b.id, patch);
+      setNoteDraft("");
+    } catch (_e) { /* ignore */ }
+    finally { setBusy(false); }
+  };
+
+  const onProgressPhotos = async (files: FileList | null) => {
+    if (!files || files.length === 0 || busy) return;
+    setBusy(true);
+    try {
+      const urls: string[] = [];
+      for (const f of Array.from(files).slice(0, 6)) {
+        const { file_url } = await db.integrations.Core.UploadFile({ file: f });
+        urls.push(file_url);
+      }
+      const photos = [...(b.progress_photos || []), ...urls].slice(0, 12);
+      await db.entities.ServiceBooking.update(b.id, { progress_photos: photos });
+    } catch (_e) { /* ignore */ }
+    finally { setBusy(false); }
+  };
+
+  const removeProgressPhoto = async (idx: number) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const photos = (b.progress_photos || []).filter((_, i) => i !== idx);
+      await db.entities.ServiceBooking.update(b.id, { progress_photos: photos });
+    } finally { setBusy(false); }
+  };
+
+  const issueInvoice = async () => {
+    const amt = Number(invAmount);
+    if (!amt || amt < 0.5 || !invDesc.trim() || busy) return;
+    setBusy(true);
+    try {
+      const code = "SKC-INF-" + Date.now().toString().slice(-6).toUpperCase();
+      await db.entities.Invoice.create({
+        invoice_code: code,
+        owner_email: b.customer_email,
+        owner_email_lower: b.customer_email.toLowerCase(),
+        description: invDesc.trim(),
+        amount: amt,
+        status: "unpaid",
+      });
+      setInvOpen(false);
+      setInvAmount("");
+      setInvDesc("");
+      onReload();
+    } catch (_e) { /* ignore */ }
+    finally { setBusy(false); }
   };
 
   return (
@@ -453,6 +578,7 @@ function BookingCard({ b }: { b: ServiceBooking }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-heading text-sm uppercase text-data">{b.year || ""} {b.make || ""} {b.model || ""}</span>
             <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border ${STATUS_COLOR[b.status] || ""}`}>{b.status}</span>
+            <span className="font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 border border-cyan/30 text-cyan">{STAGE_LABEL[stage]}</span>
             {b.urgency?.includes("Emergency") && <span className="font-mono text-[9px] uppercase tracking-wider text-heat border border-heat/40 px-2 py-0.5">EMERGENCY</span>}
           </div>
           <div className="font-mono text-[10px] text-muted-foreground mt-1 truncate">{b.problem_category} • {b.customer_name} • {created}</div>
@@ -461,43 +587,107 @@ function BookingCard({ b }: { b: ServiceBooking }) {
       </button>
 
       {open && (
-        <div className="border-t border-cyan/15 px-5 py-5 grid sm:grid-cols-2 gap-5">
-          <div>
-            <Row label="VIN" value={b.vin} mono />
-            <Row label="Engine" value={b.engine_size} />
-            <Row label="Category" value={b.problem_category} />
-            <Row label="Problem area" value={b.problem_location} />
-            <Row label="Urgency" value={b.urgency} />
-            <Row label="Slot" value={b.scheduled_date} mono />
-            <Row label="Detail" value={b.problem_detail} block />
-          </div>
-          <div>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-3">// Customer Contact</div>
-            <a href={`tel:${(b.customer_phone || "").replace(/[^0-9]/g, "")}`} className="flex items-center gap-2 py-2 hover:text-cyan transition-colors">
-              <Phone className="w-4 h-4 text-cyan" /><span className="font-mono text-sm">{b.customer_phone || "n/a"}</span>
-            </a>
-            <a href={`mailto:${b.customer_email}`} className="flex items-center gap-2 py-2 hover:text-cyan transition-colors break-all">
-              <Mail className="w-4 h-4 text-cyan" /><span className="font-mono text-sm">{b.customer_email || "n/a"}</span>
-            </a>
-            <div className="font-mono text-sm py-2 text-data"><span className="text-muted-foreground">Name: </span>{b.customer_name || "n/a"}</div>
-
-            {b.photo_urls && b.photo_urls.length > 0 && (
-              <div className="mt-3">
-                <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-2">// Evidence</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {b.photo_urls.map((url, i) => (
-                    <a key={i} href={url} target="_blank" rel="noreferrer" className="block aspect-square border border-cyan/20 overflow-hidden">
-                      <img src={url} alt={`evidence ${i + 1}`} className="w-full h-full object-cover" />
-                    </a>
-                  ))}
+        <div className="border-t border-cyan/15 px-5 py-5">
+          <div className="grid sm:grid-cols-2 gap-5">
+            <div>
+              <Row label="VIN" value={b.vin} mono />
+              <Row label="Engine" value={b.engine_size} />
+              <Row label="Category" value={b.problem_category} />
+              <Row label="Problem area" value={b.problem_location} />
+              <Row label="Urgency" value={b.urgency} />
+              <Row label="Slot" value={b.scheduled_date} mono />
+              <Row label="Detail" value={b.problem_detail} block />
+              {b.reference_code && <Row label="Ref" value={b.reference_code} mono />}
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-3">// Customer Contact</div>
+              <a href={`tel:${(b.customer_phone || "").replace(/[^0-9]/g, "")}`} className="flex items-center gap-2 py-2 hover:text-cyan transition-colors">
+                <Phone className="w-4 h-4 text-cyan" /><span className="font-mono text-sm">{b.customer_phone || "n/a"}</span>
+              </a>
+              <a href={`mailto:${b.customer_email}`} className="flex items-center gap-2 py-2 hover:text-cyan transition-colors break-all">
+                <Mail className="w-4 h-4 text-cyan" /><span className="font-mono text-sm">{b.customer_email || "n/a"}</span>
+              </a>
+              <div className="font-mono text-sm py-2 text-data"><span className="text-muted-foreground">Name: </span>{b.customer_name || "n/a"}</div>
+              {b.photo_urls && b.photo_urls.length > 0 && (
+                <div className="mt-3">
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-2">// Evidence</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {b.photo_urls.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" className="block aspect-square border border-cyan/20 overflow-hidden">
+                        <img src={url} alt={`evidence ${i + 1}`} className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Stage pipeline controls */}
+          <div className="mt-6 border-t border-cyan/10 pt-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-cyan"><ClipboardList className="w-3.5 h-3.5" /> // Service Tracker Stage</div>
+              <button onClick={() => setStage(STAGE_ORDER[stageIdx + 1] || stage)} disabled={busy || stageIdx >= STAGE_ORDER.length - 1} className="font-mono text-[10px] uppercase tracking-wider border border-cyan/40 text-cyan px-3 py-1.5 hover:glow-cyan disabled:opacity-40 transition-all">Advance →</button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {STAGE_ORDER.map((s, i) => {
+                const reached = i <= stageIdx;
+                const active = i === stageIdx;
+                return (
+                  <button key={s} onClick={() => setStage(s)} disabled={busy} className={`font-mono text-[10px] uppercase tracking-wider px-2.5 py-1.5 border transition-all ${active ? "border-cyan bg-cyan/15 text-cyan glow-cyan" : reached ? "border-cyan/40 text-cyan/80" : "border-cyan/15 text-muted-foreground/60 hover:border-cyan/40"} disabled:opacity-50`}>
+                    {STAGE_LABEL[s]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Technician notes */}
+          <div className="mt-5">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-cyan mb-3"> // Technician Notes</div>
+            {b.technician_notes && b.technician_notes.length > 0 && (
+              <ul className="space-y-1.5 mb-3">
+                {b.technician_notes.map((n, i) => (
+                  <li key={i} className="font-body text-sm text-data/85 leading-relaxed flex gap-2"><span className="font-mono text-cyan/70 shrink-0">▸</span>{n}</li>
+                ))}
+              </ul>
+            )}
+            <div className="grid sm:grid-cols-3 gap-2">
+              <input value={techName} onChange={(e) => setTechName(e.target.value)} placeholder="Tech name" className="bg-titanium border border-cyan/20 px-3 py-2 font-mono text-xs text-data focus:border-cyan focus:outline-none" />
+              <input value={noteDraft} onChange={(e) => setNoteDraft(e.target.value)} placeholder="New note…" className="sm:col-span-2 bg-titanium border border-cyan/20 px-3 py-2 font-body text-sm text-data focus:border-cyan focus:outline-none" onKeyDown={(e) => { if (e.key === "Enter") addNote(); }} />
+            </div>
+            <button onClick={addNote} disabled={busy || !noteDraft.trim()} className="mt-2 inline-flex items-center gap-1.5 bg-cyan/10 border border-cyan/40 text-cyan font-mono text-[11px] uppercase tracking-wider px-3 py-2 hover:glow-cyan disabled:opacity-40 transition-all"><Plus className="w-3.5 h-3.5" /> Add Note</button>
+          </div>
+
+          {/* Progress photos */}
+          <div className="mt-5">
+            <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-cyan mb-3"><ImageIcon className="w-3.5 h-3.5" /> // Progress Photos</div>
+            {b.progress_photos && b.progress_photos.length > 0 && (
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
+                {b.progress_photos.map((url, i) => (
+                  <div key={i} className="relative aspect-square border border-cyan/20 overflow-hidden group">
+                    <img src={url} alt={`progress ${i + 1}`} className="w-full h-full object-cover" />
+                    <button onClick={() => removeProgressPhoto(i)} disabled={busy} className="absolute top-1 right-1 w-5 h-5 bg-titanium/80 border border-heat/40 text-heat text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                  </div>
+                ))}
               </div>
             )}
+            <label className="inline-flex items-center gap-1.5 border border-dashed border-cyan/30 text-cyan/80 font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 cursor-pointer hover:border-cyan/60 hover:bg-cyan/5 transition-all">
+              <Upload className="w-3.5 h-3.5" /> Upload progress photos
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onProgressPhotos(e.target.files)} />
+            </label>
+            {busy && <span className="ml-3 font-mono text-[10px] text-cyan/60 inline-flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> working…</span>}
+          </div>
 
-            {NEXT_STATUS[b.status] && (
-              <button onClick={advance} className="mt-4 w-full border border-cyan/40 text-cyan font-mono text-[11px] uppercase tracking-wider py-2.5 hover:glow-cyan transition-all">
-                Mark as {NEXT_STATUS[b.status]}
-              </button>
+          {/* Invoice generation */}
+          <div className="mt-5 border-t border-cyan/10 pt-5">
+            <button onClick={() => setInvOpen(!invOpen)} className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider border border-cyan/40 text-cyan px-3 py-2 hover:glow-cyan transition-all"><DollarSign className="w-3.5 h-3.5" /> Issue Invoice</button>
+            {invOpen && (
+              <div className="mt-3 grid sm:grid-cols-3 gap-2">
+                <input type="number" min="0.5" step="0.01" value={invAmount} onChange={(e) => setInvAmount(e.target.value)} placeholder="Amount $" className="bg-titanium border border-cyan/20 px-3 py-2 font-mono text-sm text-data focus:border-cyan focus:outline-none" />
+                <input value={invDesc} onChange={(e) => setInvDesc(e.target.value)} placeholder="Description" className="sm:col-span-2 bg-titanium border border-cyan/20 px-3 py-2 font-body text-sm text-data focus:border-cyan focus:outline-none" />
+                <button onClick={issueInvoice} disabled={busy || !invAmount || !invDesc.trim()} className="sm:col-span-3 inline-flex items-center justify-center gap-1.5 bg-cyan text-titanium font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 hover:glow-cyan disabled:opacity-40 transition-all"><Plus className="w-3.5 h-3.5" /> Create Invoice for {b.customer_email}</button>
+              </div>
             )}
           </div>
         </div>

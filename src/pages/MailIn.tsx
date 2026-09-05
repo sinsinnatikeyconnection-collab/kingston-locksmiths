@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { useAuth } from "@/lib/AuthContext";
 import PageShell from "@/components/apex/PageShell";
 import { useToast } from "@/components/ui/use-toast";
@@ -61,7 +63,7 @@ export default function MailIn() {
         key = newIdempotencyKey();
         persistIdempotencyKey("mailin", key);
       }
-      const result = await safeInvoke(() => base44.functions.invoke("createMailIn", {
+      const result = await safeInvoke(() => db.functions.invoke("createMailIn", {
         idempotencyKey: key,
         request: {
           ...form,

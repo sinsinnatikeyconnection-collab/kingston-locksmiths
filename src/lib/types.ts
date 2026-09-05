@@ -1,3 +1,4 @@
+
 // Shared entity boundary types for the Sinsinnati Key Connection app.
 //
 // These mirror the JSON-schema entities in base44/entities/*. Because every
@@ -13,7 +14,7 @@ export interface EntityRecordBase {
   created_by_id?: string;
 }
 
-// Shape returned by base44.auth.me() — mirrors the built-in User entity.
+// Shape returned by db.auth.me() — mirrors the built-in User entity.
 export interface AppUser {
   id: string;
   email: string;
@@ -34,6 +35,14 @@ export type BookingUrgency =
 
 export type BookingStatus = "received" | "reviewing" | "scheduled" | "completed";
 
+export type BookingStage =
+  | "booked"
+  | "diagnosing"
+  | "in_progress"
+  | "quality_check"
+  | "ready_for_pickup"
+  | "complete";
+
 export interface ServiceBooking extends EntityRecordBase {
   year: string;
   make: string;
@@ -50,6 +59,13 @@ export interface ServiceBooking extends EntityRecordBase {
   customer_email: string;
   customer_phone: string;
   status: BookingStatus;
+  progress_stage?: BookingStage;
+  technician_name?: string;
+  technician_notes?: string[];
+  progress_photos?: string[];
+  price_estimate_low?: number;
+  price_estimate_high?: number;
+  reference_code?: string;
 }
 
 export type MailInItemType =

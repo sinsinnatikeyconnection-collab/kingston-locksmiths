@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Activity, ChevronRight, AlertTriangle } from "lucide-react";
@@ -37,10 +39,10 @@ export default function EngineDiagnostic() {
     try {
       let fileUrls: string[] | null = null;
       if (media) {
-        const up = await base44.integrations.Core.UploadFile({ file: media });
+        const up = await db.integrations.Core.UploadFile({ file: media });
         fileUrls = [up.file_url];
       }
-      const res = await base44.functions.invoke("aiService", {
+      const res = await db.functions.invoke("aiService", {
         kind: "diagnostic",
         symptoms: `${vehicle ? "Vehicle: " + vehicle + ". " : ""}${symptoms}`,
         fileUrls,

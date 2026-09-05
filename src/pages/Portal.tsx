@@ -1,20 +1,24 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { useAuth } from "@/lib/AuthContext";
 import PageShell from "@/components/apex/PageShell";
 import { Link } from "react-router-dom";
-import { Loader2, Cpu, Truck, Award, Wrench, Receipt, ShieldCheck, ChevronRight, User, Trash2 } from "lucide-react";
+import { Loader2, Cpu, Truck, Award, Wrench, Receipt, ShieldCheck, ChevronRight, User, Trash2, Gift } from "lucide-react";
+import LoyaltyMemberPanel from "@/components/apex/LoyaltyMemberPanel";
 import { useToast } from "@/components/ui/use-toast";
 import type { ServiceBooking, Certificate, MailInRequest, Invoice } from "@/lib/types";
 import { validateEmail } from "@/lib/validation";
 import { safeInvoke } from "@/lib/safeInvoke";
 import ReconnectingBoundary from "@/components/apex/ReconnectingBoundary";
 import SecureCheckoutBadge from "@/components/apex/SecureCheckoutBadge";
+import ServiceTracker from "@/components/apex/ServiceTracker";
 
 const ShopStatusBoard = lazy(() => import("@/components/apex/ShopStatusBoard"));
 const DigitalTwin = lazy(() => import("@/components/apex/DigitalTwin"));
 
-type TabId = "bookings" | "certs" | "mailin" | "invoices" | "bench" | "twin" | "settings";
+type TabId = "bookings" | "certs" | "mailin" | "invoices" | "loyalty" | "bench" | "twin" | "settings";
 
 interface TabDef {
   id: TabId;
@@ -27,6 +31,7 @@ const TABS: TabDef[] = [
   { id: "certs", label: "Certificates", icon: Award },
   { id: "mailin", label: "Mail-Ins", icon: Truck },
   { id: "invoices", label: "Invoices", icon: Receipt },
+  { id: "loyalty", label: "Loyalty", icon: Gift },
   { id: "bench", label: "Shop Bench", icon: Cpu },
   { id: "twin", label: "Digital Twin", icon: ShieldCheck },
   { id: "settings", label: "Account", icon: User },
@@ -59,10 +64,10 @@ export default function Portal() {
     setLoading(true);
     try {
       const [b, c, m, i] = await Promise.all([
-        base44.entities.ServiceBooking.list("-created_date", 100).catch(() => []),
-        base44.entities.Certificate.list("-created_date", 100).catch(() => []),
-        base44.entities.MailInRequest.list("-created_date", 100).catch(() => []),
-        base44.entities.Invoice.list("-created_date", 100).catch(() => []),
+        db.entities.ServiceBooking.list("-created_date", 100).catch(() => []),
+        db.entities.Certificate.list("-created_date", 100).catch(() => []),
+        db.entities.MailInRequest.list("-created_date", 100).catch(() => []),
+        db.entities.Invoice.list("-created_date", 100).catch(() => []),
       ]);
       setBookings(Array.isArray(b) ? (b as ServiceBooking[]) : ((b as { data?: ServiceBooking[] })?.data || []));
       setCerts(Array.isArray(c) ? (c as Certificate[]) : ((c as { data?: Certificate[] })?.data || []));
@@ -99,9 +104,11 @@ export default function Portal() {
 
         {!loading && tab === "bookings" && (
           <div className="space-y-2">
-            {bookings.length === 0 ? <Empty label="No bookings yet" cta={<Link to="/#intake" className="text-cyan underline">Book a service →</Link>} /> : bookings.map((b) => (
-              <Row key={b.id} title={`${b.year} ${b.make} ${b.model}`} sub={b.problem_category} status={b.status} extra={`VIN ${b.vin} • ${b.urgency}`} />
-            ))}
+            {bookings.length === 0 ? <Empty label="No bookings yet" cta={<Link to="/#intake" className="text-cyan underline">Book a service →</Link>} /> : (
+              <div className="space-y-3">
+                {bookings.map((b) => <ServiceTracker key={b.id} booking={b} />)}
+              </div>
+            )}
           </div>
         )}
         {!loading && tab === "certs" && (
@@ -125,7 +132,7 @@ export default function Portal() {
                         if (!emailR.ok) { toast({ title: "Invalid email", description: emailR.error, variant: "destructive" }); return; }
                         setTransfer({ ...transfer, busy: true });
                         try {
-                          const result = await safeInvoke(() => base44.functions.invoke("transferCertificate", { certificateId: c.id, currentOwnerEmail: user?.email, newOwnerEmail: transfer.email }));
+                          const result = await safeInvoke(() => db.functions.invoke("transferCertificate", { certificateId: c.id, currentOwnerEmail: user?.email, newOwnerEmail: transfer.email }));
                           const data = result.ok ? result.value?.data : undefined;
                           if (result.ok && data?.status === "transferred") { toast({ title: "Certificate transferred", description: "Ownership moved to " + transfer.email }); setTransfer({ certId: null, email: "", busy: false }); load(); }
                           else if (!result.ok) toast({ title: result.retryable ? "Network interrupted" : "Transfer failed", description: result.error, variant: "destructive" });
@@ -169,7 +176,7 @@ export default function Portal() {
                   {inv.status !== "paid" && (
                     <button
                       onClick={async () => {
-                        const result = await safeInvoke(() => base44.functions.invoke("create-checkout", { invoiceId: inv.id }));
+                        const result = await safeInvoke(() => db.functions.invoke("create-checkout", { invoiceId: inv.id }));
                         const data = result.ok ? result.value?.data : undefined;
                         if (result.ok && data?.redirectUrl) { window.location.href = data.redirectUrl; return; }
                         if (!result.ok) { toast({ title: result.retryable ? "Network interrupted" : "Checkout failed", description: result.error, variant: "destructive" }); return; }
@@ -187,6 +194,7 @@ export default function Portal() {
             ))}
           </div>
         )}
+        {!loading && tab === "loyalty" && <LoyaltyMemberPanel email={user?.email} />}
         {!loading && tab === "bench" && <ReconnectingBoundary component="Shop Bench Live"><Suspense fallback={<SectionFallback />}><ShopStatusBoard /></Suspense></ReconnectingBoundary>}
         {!loading && tab === "twin" && <ReconnectingBoundary component="Digital Twin"><Suspense fallback={<SectionFallback />}><DigitalTwin /></Suspense></ReconnectingBoundary>}
 
@@ -220,12 +228,12 @@ export default function Portal() {
                     onClick={async () => {
                       setDeleting(true);
                       try {
-                        const me = await base44.auth.me();
+                        const me = await db.auth.me();
                         if (me?.id) {
-                          await base44.entities.User.delete(me.id);
+                          await db.entities.User.delete(me.id);
                         }
                         toast({ title: "Account deleted", description: "Your profile has been removed." });
-                        await base44.auth.logout();
+                        await db.auth.logout();
                         window.location.href = "/login";
                       } catch (e) {
                         toast({ title: "Could not delete account", description: (e as Error).message || "Please contact us to remove your account.", variant: "destructive" });

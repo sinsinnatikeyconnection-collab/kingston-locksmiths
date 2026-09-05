@@ -1,6 +1,9 @@
-import React from "react";
-import { Loader2, ShieldAlert, ExternalLink, Cpu, Info, Star, AlertOctagon, MessageSquareWarning } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { Loader2, ShieldAlert, ExternalLink, Cpu, Info, Star, AlertOctagon, MessageSquareWarning, CalendarClock } from "lucide-react";
 import type { VinDecodeResult } from "@/hooks/useVinDecode";
+import type { ProblemCategory } from "@/lib/types";
+import { buildMaintenance } from "@/lib/maintenance";
+import ScheduleButton from "@/components/apex/ScheduleButton";
 
 interface Props {
   data: VinDecodeResult | null;
@@ -36,7 +39,16 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
+function recallCategory(comp: string): ProblemCategory {
+  const c = (comp || "").toLowerCase();
+  if (/(electri|wiring|battery|air ?bag|srs|ignit|sensor|module)/.test(c)) return "Electrical & Diagnostics";
+  return "Mechanical Repair";
+}
+
 export default function VinDecodePanel({ data, loading, error }: Props) {
+  const [mileage, setMileage] = useState<number | null>(null);
+  const maint = useMemo(() => buildMaintenance(data?.decoded?.year || "", mileage ?? 0), [data?.decoded?.year, mileage]);
+
   if (loading) {
     return (
       <div className="mt-3 flex items-center gap-2 border border-cyan/20 bg-cyan/5 px-3 py-2">
@@ -118,6 +130,7 @@ export default function VinDecodePanel({ data, loading, error }: Props) {
                 </div>
                 <div className="font-mono text-[10px] text-data/90 mt-0.5">{r.component}</div>
                 <p className="font-body text-[11px] text-muted-foreground leading-snug mt-0.5">{r.summary}</p>
+                <div className="mt-1.5"><ScheduleButton vin={data.vin} detail={`Recall ${r.number}: ${r.component} — ${r.summary}`} category={recallCategory(r.component)} /></div>
               </li>
             ))}
           </ul>
@@ -200,6 +213,40 @@ export default function VinDecodePanel({ data, loading, error }: Props) {
             {safetyRating.note || "No NCAP crash-test data for this model."}
           </p>
         )}
+      </div>
+
+      <div className="border-t border-cyan/10 pt-2">
+        <div className="flex items-center gap-2 mb-2">
+          <CalendarClock className="w-3.5 h-3.5 text-cyan" />
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan/60">// Maintenance Schedule</span>
+          <span className="font-mono text-[9px] text-muted-foreground/70 ml-auto">vehicle age {maint.age} yr</span>
+        </div>
+        <div className="flex items-center gap-2 mb-2.5">
+          <label className="font-mono text-[9px] uppercase text-cyan/60 shrink-0">Current mileage</label>
+          <input
+            type="number"
+            min={0}
+            value={mileage ?? ""}
+            onChange={(e) => setMileage(e.target.value ? Math.max(0, parseInt(e.target.value, 10) || 0) : null)}
+            placeholder="e.g. 84000"
+            className="flex-1 max-w-[140px] bg-titanium border border-cyan/20 px-2 py-1.5 font-mono text-xs text-data focus:border-cyan focus:outline-none"
+          />
+        </div>
+        <ul className="space-y-1.5">
+          {maint.items.map((it) => {
+            const stColor = it.status === "due_now" ? "border-heat/40 text-heat" : it.status === "due_soon" ? "border-yellow-400/40 text-yellow-400" : "border-cyan/20 text-muted-foreground";
+            const stLabel = it.status === "due_now" ? "DUE NOW" : it.status === "due_soon" ? "DUE SOON" : "OK";
+            return (
+              <li key={it.key} className={`border ${stColor} bg-titanium/40 px-2 py-1.5 flex flex-wrap items-center gap-x-2 gap-y-1`}>
+                <span className="font-mono text-[11px] text-data/90 flex-1 min-w-[120px]">{it.label}</span>
+                <span className={`font-mono text-[9px] uppercase ${stColor} px-1.5 py-0.5 border`}>{stLabel}</span>
+                {it.nextDueMiles != null && <span className="font-mono text-[9px] text-muted-foreground/70">next ~{it.nextDueMiles.toLocaleString()} mi</span>}
+                {it.status !== "ok" && <ScheduleButton vin={data.vin} detail={`${it.label}${it.note ? " — " + it.note : ""}`} category={it.service} label="Schedule" />}
+              </li>
+            );
+          })}
+        </ul>
+        <p className="font-mono text-[8px] text-muted-foreground/60 mt-1.5">Generic recommended intervals — confirm against your owner's manual.</p>
       </div>
 
       <div className="border-t border-cyan/10 pt-2 flex items-start gap-2">

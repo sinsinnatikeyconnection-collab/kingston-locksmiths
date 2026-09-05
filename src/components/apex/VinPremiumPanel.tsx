@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2, Lock, ShieldCheck, CreditCard, Cpu } from "lucide-react";
 import SecureCheckoutBadge from "@/components/apex/SecureCheckoutBadge";
@@ -27,7 +29,7 @@ export default function VinPremiumPanel({ vin }: { vin: string }) {
   const load = async (em: string) => {
     setLoading(true);
     try {
-      const res: any = await base44.functions.invoke("decodeVin", { vin, premium: true, email: em || undefined });
+      const res: any = await db.functions.invoke("decodeVin", { vin, premium: true, email: em || undefined });
       const pr = res?.data?.premiumReport ?? res?.premiumReport;
       setReport(pr || null);
     } catch (e: any) {
@@ -66,7 +68,7 @@ export default function VinPremiumPanel({ vin }: { vin: string }) {
     setPaying(true);
     try {
       localStorage.setItem("vinUnlockEmail", email);
-      const invRes: any = await base44.functions.invoke("createVinUnlock", { vin, email });
+      const invRes: any = await db.functions.invoke("createVinUnlock", { vin, email });
       const invoiceId = invRes?.data?.invoiceId ?? invRes?.invoiceId;
       if (!invoiceId) {
         toast({ title: "Unlock setup failed", variant: "destructive" });
@@ -74,7 +76,7 @@ export default function VinPremiumPanel({ vin }: { vin: string }) {
         return;
       }
       const returnUrl = "/diagnostics?vin=" + vin + "&paid=1";
-      const coRes: any = await base44.functions.invoke("create-checkout", { invoiceId, returnUrl });
+      const coRes: any = await db.functions.invoke("create-checkout", { invoiceId, returnUrl });
       const redirectUrl = coRes?.data?.redirectUrl ?? coRes?.redirectUrl;
       if (redirectUrl) {
         window.location.href = redirectUrl;

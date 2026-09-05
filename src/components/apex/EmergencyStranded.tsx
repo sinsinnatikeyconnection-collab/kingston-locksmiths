@@ -1,5 +1,8 @@
+import db from "@/api/base44Client";
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+
 import { Siren, MapPin, Loader2, Phone, Navigation, Activity } from "lucide-react";
 
 // Shop coordinates (used only to compute straight-line ETA; never shown to customer).
@@ -32,6 +35,7 @@ export default function EmergencyStranded() {
   const [coords, setCoords] = useState<Point | null>(null);
   const [stepIdx, setStepIdx] = useState<number>(0);
   const [tick, setTick] = useState<number>(0);
+  const [dispAddress, setDispAddress] = useState<string | null>(null);
 
   const activate = () => {
     if (!navigator.geolocation) {
@@ -49,6 +53,19 @@ export default function EmergencyStranded() {
         setEta(minutes);
         setState("active");
         setTick(minutes);
+        // Fire the backend dispatch — alerts both shop addresses and reverse-geocodes the address
+        void (async () => {
+          try {
+            const resp = await db.functions.invoke("emergencyDispatch", {
+              latitude: c.lat,
+              longitude: c.lon,
+              vehicleInfo: {},
+              description: "Customer pressed panic button — stranded",
+              customerPhone: ""
+            });
+            if (resp?.data?.success && resp.data.address) setDispAddress(resp.data.address);
+          } catch { /* the live ETA flow still runs; the email is best-effort */ }
+        })();
         let s = 0;
         const iv = window.setInterval(() => {
           s += 1;
@@ -111,7 +128,12 @@ export default function EmergencyStranded() {
               </div>
               {coords && (
                 <div className="font-mono text-[10px] text-muted-foreground/60 flex items-center gap-1.5 justify-center">
-                  <MapPin className="w-3 h-3" /> Pin: {coords.lat.toFixed(4)}, {coords.lon.toFixed(4)} <Navigation className="w-3 h-3 ml-2" /> Tech: ••••• hidden
+                  <MapPin className="w-3 h-3" /> GPS acquired — technician location hidden <Navigation className="w-3 h-3 ml-2" />
+                </div>
+              )}
+              {dispAddress && (
+                <div className="font-mono text-[10px] text-cyan/80 border border-cyan/20 bg-titanium py-2 px-4 inline-block max-w-md mx-auto text-left leading-relaxed">
+                  <span className="text-cyan/60">// your location</span><br />{dispAddress}
                 </div>
               )}
               <div className="flex flex-wrap items-center justify-center gap-3 pt-2">

@@ -85,6 +85,49 @@
       "default": "received",
       "title": "Status"
     },
+    "progress_stage": {
+      "type": "string",
+      "enum": [
+        "booked",
+        "diagnosing",
+        "in_progress",
+        "quality_check",
+        "ready_for_pickup",
+        "complete"
+      ],
+      "default": "booked",
+      "title": "Progress Stage"
+    },
+    "technician_name": {
+      "type": "string",
+      "title": "Technician Name"
+    },
+    "technician_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Technician Notes"
+    },
+    "progress_photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Progress Photos"
+    },
+    "price_estimate_low": {
+      "type": "number",
+      "title": "Price Estimate Low"
+    },
+    "price_estimate_high": {
+      "type": "number",
+      "title": "Price Estimate High"
+    },
+    "reference_code": {
+      "type": "string",
+      "title": "Reference Code"
+    },
     "idempotency_key": {
       "type": "string",
       "title": "Idempotency Key"
@@ -94,7 +137,6 @@
     "year",
     "make",
     "model",
-    "vin",
     "problem_category",
     "urgency",
     "customer_name",

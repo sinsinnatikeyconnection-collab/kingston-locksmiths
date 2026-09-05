@@ -1,5 +1,5 @@
 import React from "react";
-import IntakeForm from "@/components/apex/IntakeForm";
+import BookingWizard from "@/components/apex/BookingWizard";
 
 export default function IntakeSection() {
   return (
@@ -18,7 +18,7 @@ export default function IntakeSection() {
             converts your anxiety into action.
           </p>
         </div>
-        <IntakeForm />
+        <BookingWizard />
       </div>
     </section>
   );

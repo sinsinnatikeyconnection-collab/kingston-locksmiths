@@ -1,0 +1,54 @@
+{
+  "name": "BeforeAfterCase",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "tag": {
+      "type": "string",
+      "title": "Tag"
+    },
+    "vehicle": {
+      "type": "string",
+      "title": "Vehicle"
+    },
+    "before_image_url": {
+      "type": "string",
+      "title": "Before Image Url"
+    },
+    "after_image_url": {
+      "type": "string",
+      "title": "After Image Url"
+    },
+    "order": {
+      "type": "number",
+      "default": 0,
+      "title": "Order"
+    }
+  },
+  "required": [
+    "title",
+    "before_image_url",
+    "after_image_url"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

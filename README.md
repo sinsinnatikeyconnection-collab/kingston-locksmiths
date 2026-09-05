@@ -1,6 +1,8 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 # Base44 Project
 
-Use this repository to run and edit the app locally, then publish changes back through Base44.
+Use this repository to run and edit the app locally, then publish changes back through db.
 
 Any change pushed to the repo will also be reflected in the Base44 Builder.
 
@@ -11,7 +13,7 @@ Any change pushed to the repo will also be reflected in the Base44 Builder.
 3. Install dependencies: `npm install`.
 4. Install the Base44 CLI: `npm install -g base44@latest`.
 
-See the [Base44 CLI docs](https://docs.base44.com/developers/references/cli/get-started/overview) if you want to run Base44 commands directly.
+See the [Base44 CLI docs](https://docs.db.com/developers/references/cli/get-started/overview) if you want to run Base44 commands directly.
 
 ## Run Locally
 
@@ -51,7 +53,7 @@ For frontend-only development, create or update `.env.local` in the project root
 
 ```bash
 VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
+VITE_BASE44_APP_BASE_URL=https://your-app.db.app
 ```
 
 `VITE_BASE44_APP_ID` identifies the Base44 app.
@@ -70,8 +72,8 @@ base44 dashboard open
 
 ## Docs & Support
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+Documentation: [https://docs.db.com/Integrations/Using-GitHub](https://docs.db.com/Integrations/Using-GitHub)
 
-Base44 CLI command reference: [https://docs.base44.com/developers/references/cli/commands/introduction](https://docs.base44.com/developers/references/cli/commands/introduction)
+Base44 CLI command reference: [https://docs.db.com/developers/references/cli/commands/introduction](https://docs.db.com/developers/references/cli/commands/introduction)
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Support: [https://app.db.com/support](https://app.db.com/support)

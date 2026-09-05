@@ -1,4 +1,7 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
+import { validateContact } from '../../shared/validation.ts';
 
 // Idempotent mail-in request creation + label generation.
 //
@@ -24,10 +27,16 @@ export default async function(req) {
       if (!payload[f]) return Response.json({ error: `Missing field: ${f}` }, { status: 400 });
     }
 
+    // Server-side format validation — the public mail-in endpoint only checked
+    // non-empty before, so malformed/spam submits could reach the database and
+    // trigger an admin label/email. Reject bad email/phone/name up front.
+    const contactErr = validateContact(payload);
+    if (contactErr) return Response.json({ error: contactErr }, { status: 400 });
+
     const base44 = createClientFromRequest(req);
 
     // Idempotency: return the existing record + its existing label on a replay.
-    const existing = await base44.asServiceRole.entities.MailInRequest.filter({ idempotency_key: idempotencyKey });
+    const existing = await db.asServiceRole.entities.MailInRequest.filter({ idempotency_key: idempotencyKey });
     if (existing && existing.length) {
       const r = existing[0];
       return Response.json({
@@ -39,7 +48,7 @@ export default async function(req) {
 
     // Create the request — user-scoped when authenticated (Portal visibility),
     // service role otherwise (RLS create is open).
-    const collection = base44.entities.MailInRequest;
+    const collection = db.entities.MailInRequest;
     const request = await collection.create({
       ...payload,
       status: "requested",
@@ -49,7 +58,7 @@ export default async function(req) {
     // Generate the shipping label — best-effort; updates the record in place.
     let labelResult = { status: "requested", tracking: "", label: "" };
     try {
-      const lr = await base44.functions.invoke("createMailInLabel", { requestId: request.id });
+      const lr = await db.functions.invoke("createMailInLabel", { requestId: request.id });
       labelResult = (lr && lr.data) || labelResult;
     } catch (_e) {
       // Label generation failed — record remains "requested"; user is emailed later.

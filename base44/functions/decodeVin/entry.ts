@@ -1,3 +1,5 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 // VIN decoder — server-side proxy to free NHTSA endpoints + deep OEM intelligence.
 //   VPIC DecodeVin     -> Year/Make/Model/Trim/Engine specs
 //   NHTSA Recalls      -> safety campaigns / defect reports
@@ -128,7 +130,7 @@ async function generatePremiumReport(base44, decoded, vin) {
     "pinouts — notable component pinouts, connector locations, and bus access points.\n" +
     "repair_solutions — common repair solutions, cautions, and torque/setting notes.\n\n" +
     "STRICT RULES: Do NOT include immobilizer bypass/kill steps, odometer or mileage alteration/calibration procedures, or key bitting/cut codes. Provide only factual, service-grade diagnostic info. If a section has no reliable public data for this platform, say so in that section. Keep each body concise (a few paragraphs).";
-  const llm = await base44.asServiceRole.integrations.Core.InvokeLLM({
+  const llm = await db.asServiceRole.integrations.Core.InvokeLLM({
     prompt,
     add_context_from_internet: true,
     model: "gemini_3_flash",
@@ -152,12 +154,12 @@ async function generatePremiumReport(base44, decoded, vin) {
 
 async function ensureVinReport(base44, decoded, vin) {
   try {
-    const existing = await base44.asServiceRole.entities.VinReport.filter({ vin }, "-created_date", 1);
+    const existing = await db.asServiceRole.entities.VinReport.filter({ vin }, "-created_date", 1);
     if (existing && existing.length) return existing[0];
   } catch (_e) { /* miss */ }
   const sections = await withRetry(() => generatePremiumReport(base44, decoded, vin), { tries: 2 });
   const preview = sections.map((s) => ({ key: s.key, title: s.title, teaser: String(s.body || "").slice(0, 160) }));
-  return await base44.asServiceRole.entities.VinReport.create({
+  return await db.asServiceRole.entities.VinReport.create({
     vin, year: decoded.year, make: decoded.make, model: decoded.model,
     report_json: JSON.stringify(sections),
     preview_sections: preview,
@@ -168,7 +170,7 @@ async function ensureVinReport(base44, decoded, vin) {
 async function determineUnlock(base44, vin, email) {
   if (!email) return { unlocked: false, invoiceId: null };
   let invoices = [];
-  try { invoices = await base44.asServiceRole.entities.Invoice.filter({ owner_email_lower: String(email).toLowerCase() }); } catch (_e) {}
+  try { invoices = await db.asServiceRole.entities.Invoice.filter({ owner_email_lower: String(email).toLowerCase() }); } catch (_e) {}
   const mine = (invoices || []).filter((i) => String(i.description || "").includes(vin));
   const paid = mine.find((i) => i.status === "paid");
   const unpaid = mine.find((i) => i.status === "unpaid");

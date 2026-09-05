@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Phone, Mail, Cpu, Clock, MapPin, ChevronRight } from "lucide-react";
 import PageShell from "@/components/apex/PageShell";
+import ContactForm from "@/components/apex/ContactForm";
 
 interface PhoneLine { label: string; value: string; tel: string }
 interface EmailLine { label: string; value: string }
@@ -91,6 +92,27 @@ export default function Contact() {
               Book a Service <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* contact form */}
+      <section className="border-t border-cyan/10 bg-blueprint/20">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-16 grid lg:grid-cols-2 gap-10">
+          <div>
+            <div className="font-mono text-[11px] uppercase tracking-widest text-cyan mb-3">
+              // Send a Message
+            </div>
+            <h2 className="font-heading text-3xl uppercase text-data leading-tight">
+              Tell Us What's Going On
+            </h2>
+            <p className="font-body text-sm text-muted-foreground leading-relaxed mt-4 max-w-md">
+              Locked out, no keys, dash lit up, weird engine behavior? Drop a quick
+              description and we'll route it to the right tech. For immediate
+              emergency dispatch, call instead — but this works 24/7 for non-urgent
+              inquiries and mail-in starts.
+            </p>
+          </div>
+          <ContactForm />
         </div>
       </section>
 

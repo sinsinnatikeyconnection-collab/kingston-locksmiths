@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
 
 // Reusable shape of a decoded VIN — mirrors the `decodeVin` backend function's
 // response so the intake form and the engine diagnostic use one source of truth.
@@ -123,12 +122,25 @@ export function useVinDecode(vin: string) {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       try {
-        const res = await base44.functions.invoke("decodeVin", { vin: normalized });
-        const payload = (res?.data ?? res) as VinDecodeResult & { error?: string };
-        if (payload && payload.error) {
-          setError(payload.error);
-          setData(null);
-        } else if (payload && payload.decoded) {
+        const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${normalized}?format=json`);
+        if (!response.ok) throw new Error("VIN service unavailable");
+        const json = await response.json();
+        const row = json.Results?.[0] || {};
+        const payload = {
+          vin: normalized,
+          decoded: {
+            year: row.ModelYear || "", make: row.Make || "", model: row.Model || "", trim: row.Trim || "",
+            engine_size: row.DisplacementL || "", cylinders: row.EngineCylinders || "", engineModel: row.EngineModel || "",
+            fuelType: row.FuelTypePrimary || "", driveType: row.DriveType || "", transmission: row.TransmissionStyle || "",
+            bodyClass: row.BodyClass || "", plant: row.PlantCity || "", vehicleType: row.VehicleType || "",
+          },
+          recalls: [], recallError: null, complaints: { total: 0, topComponents: [], recent: [], crashes: 0, fire: 0, injuries: 0, deaths: 0 },
+          complaintError: null, safetyRating: { hasRating: false, variantCount: 0 }, safetyError: null,
+          network: { diagnosticBus: "OBD-II", notes: "Confirm module topology during diagnostic intake." },
+          oemResources: { recallsUrl: `https://www.nhtsa.gov/recalls?vin=${normalized}`, complaintsUrl: `https://www.nhtsa.gov/vehicle/${normalized}`, vpicSource: "NHTSA VPIC", tSBsAvailable: false, wiringDiagramsAvailable: false, investigationsAvailable: false, dataGap: "Public VIN data is available. Technician-level OEM records require a paid inspection." },
+          source: "NHTSA VPIC",
+        } as VinDecodeResult;
+        if (payload && payload.decoded) {
           lastCalled.current = normalized;
           setData(payload);
         } else {

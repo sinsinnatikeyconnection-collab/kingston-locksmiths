@@ -1,3 +1,5 @@
+const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 import { secrets, waitUntil } from 'base44:runtime';
 import { withRetry } from "../../shared/retry.ts";
@@ -14,7 +16,7 @@ export default async function(req) {
     const base44 = createClientFromRequest(req);
     let inv;
     try {
-      inv = await base44.asServiceRole.entities.Invoice.get(invoiceId);
+      inv = await db.asServiceRole.entities.Invoice.get(invoiceId);
     } catch (_e) {
       return Response.json({ error: "Invoice not found" }, { status: 404 });
     }
@@ -90,7 +92,7 @@ export default async function(req) {
 
     const session = data.checkoutSession;
     try {
-      await base44.asServiceRole.entities.Invoice.update(invoiceId, { checkout_session_id: session.id, checkout_url: session.redirectUrl });
+      await db.asServiceRole.entities.Invoice.update(invoiceId, { checkout_session_id: session.id, checkout_url: session.redirectUrl });
     } catch (_e) {}
 
     return Response.json({ redirectUrl: session.redirectUrl, sessionId: session.id });

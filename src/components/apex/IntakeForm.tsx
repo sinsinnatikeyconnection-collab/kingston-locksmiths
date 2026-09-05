@@ -1,5 +1,7 @@
+import db from "@/api/base44Client";
+
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+
 import { useToast } from "@/components/ui/use-toast";
 import { useVinDecode } from "@/hooks/useVinDecode";
 import VinDecodePanel from "@/components/apex/VinDecodePanel";
@@ -141,7 +143,7 @@ export default function IntakeForm() {
     try {
       const uploaded: string[] = [];
       for (const file of Array.from(files)) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        const { file_url } = await db.integrations.Core.UploadFile({ file });
         uploaded.push(file_url);
       }
       setPhotos((prev) => [...prev, ...uploaded]);
@@ -153,7 +155,8 @@ export default function IntakeForm() {
   };
 
   const canNext = (): boolean => {
-    if (step === 0) return !!(vehicle.year && vehicle.make && vehicle.model && vehicle.vin);
+    // VIN is optional — Year/Make/Model still identify the car.
+    if (step === 0) return !!(vehicle.year && vehicle.make && vehicle.model);
     if (step === 1) return !!category;
     if (step === 2) return detail.description.length > 5;
     if (step === 3)
@@ -169,8 +172,11 @@ export default function IntakeForm() {
 
   const submit = async () => {
     // Malformed-input guards — reject before any network call.
-    const vinR = validateVin(vehicle.vin);
-    if (!vinR.ok) { toast({ title: "Invalid VIN", description: vinR.error, variant: "destructive" }); return; }
+    // VIN is optional — only validate its format when the customer provided one.
+    if (vehicle.vin && vehicle.vin.trim()) {
+      const vinR = validateVin(vehicle.vin);
+      if (!vinR.ok) { toast({ title: "Invalid VIN", description: vinR.error, variant: "destructive" }); return; }
+    }
     const nameR = validateNonEmpty("Name", dispatch.customer_name);
     if (!nameR.ok) { toast({ title: "Missing info", description: nameR.error, variant: "destructive" }); return; }
     const emailR = validateEmail(dispatch.customer_email);
@@ -188,7 +194,7 @@ export default function IntakeForm() {
         key = newIdempotencyKey();
         persistIdempotencyKey("booking", key);
       }
-      const result = await safeInvoke(() => base44.functions.invoke("createBooking", {
+      const result = await safeInvoke(() => db.functions.invoke("createBooking", {
         idempotencyKey: key,
         booking: {
           ...vehicle,
@@ -316,7 +322,7 @@ export default function IntakeForm() {
             </div>
             <div className="mt-4">
               <label className="font-mono text-[11px] uppercase tracking-wider text-cyan flex items-center gap-2 mb-2">
-                <span className="text-heat">*</span> SYSTEM_VIN_INPUT
+                <span className="text-muted-foreground/50">(optional)</span> SYSTEM_VIN_INPUT
               </label>
               <input
                 value={vehicle.vin}

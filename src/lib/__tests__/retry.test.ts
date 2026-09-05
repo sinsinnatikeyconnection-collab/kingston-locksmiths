@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { withRetry } from "@base44/shared/retry";
+import { withRetry } from "../retry";
 
 describe("withRetry", () => {
   it("returns on first success and passes the attempt index", async () => {

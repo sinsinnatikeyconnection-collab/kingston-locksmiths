@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Phone, Menu, X, ChevronRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SiteSearch from "./SiteSearch";
 import MobileTabBar from "./MobileTabBar";
+import UniversalAccess from "./UniversalAccess";
 import { useAuth } from "@/lib/AuthContext";
 
-const LOGO = "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg";
+const LOGO = "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg";
 
 interface NavLink { key: string; to: string }
 
@@ -33,31 +36,31 @@ export default function Navbar() {
     areas: "Service Areas",
     reviews: "Reviews",
     faq: "FAQ",
+    knowledge: "Knowledge Base",
     about: "About",
     contact: "Contact",
     mailin: "Mail-In",
     diag: "VIN Scan",
     ar: "AR",
+    bt: "BT Diagnostic",
     portal: "Portal",
     cta: "Init Booking",
   };
   const [tMap, setTMap] = useState<Record<string, string>>(NAV_KEYS);
   const links: NavLink[] = [
     { key: "services", to: "/services" },
-    { key: "areas", to: "/service-areas" },
-    { key: "reviews", to: "/testimonials" },
-    { key: "faq", to: "/faq" },
-    { key: "about", to: "/about" },
-    { key: "contact", to: "/contact" },
+    { key: "diag", to: "/vin-scan" },
+    { key: "bt", to: "/bt-diagnostic" },
     { key: "mailin", to: "/mail-in" },
-    { key: "diag", to: "/diagnostics" },
     { key: "ar", to: "/ar" },
-    { key: "portal", to: "/portal" },
+    { key: "contact", to: "/contact" },
   ];
 
   return (
     <>
       <MobileTabBar />
+      <UniversalAccess />
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <header
         className={`fixed top-0 left-0 right-0 z-50 pt-[env(safe-area-inset-top)] transition-all duration-300 ${
           scrolled || mobileOpen
@@ -89,6 +92,7 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-3">
+            <SiteSearch className="hidden sm:block" />
             <LanguageSwitcher originalMap={NAV_KEYS} onTranslate={(m) => setTMap(m)} />
             {isAuthenticated && user ? (
               <button
@@ -131,6 +135,9 @@ export default function Navbar() {
         {/* mobile menu */}
         {mobileOpen && (
           <nav className="md:hidden border-t border-cyan/10 bg-titanium">
+            <div className="px-6 py-3 border-b border-cyan/10">
+              <SiteSearch />
+            </div>
             {links.map((l) => (
               <Link
                 key={l.to}
