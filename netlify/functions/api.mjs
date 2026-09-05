@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
 
 const env = (name) => process.env[name] || "";
@@ -14,6 +16,11 @@ const readBody = async (event) => {
     if (event?.json && typeof event.json === "function") return await event.json();
     return event.body ? JSON.parse(event.body) : {};
   } catch { return {}; }
+};
+
+const readRawBody = async (event) => {
+  if (event?.text && typeof event.text === "function") return await event.text();
+  return event.body || "";
 };
 
 const header = (event, name) => {
@@ -211,7 +218,7 @@ async function functionRoute(event, name) {
   if (name === "create-checkout") {
     const invoice = await supabase(`/rest/v1/invoices?id=eq.${encodeURIComponent(body.invoiceId || "")}&select=*`).then((rows) => rows[0]);
     if (!invoice) return json({ error: "Invoice not found" }, 404);
-    const params = new URLSearchParams({ mode: "payment", success_url: `${env("SITE_URL")}/portal?payment=success`, cancel_url: `${env("SITE_URL")}/portal?payment=cancelled`, "line_items[0][price_data][currency]": "usd", "line_items[0][price_data][product_data][name]": invoice.description || "Automotive service", "line_items[0][price_data][unit_amount]": String(Math.round(Number(invoice.amount) * 100)), "line_items[0][quantity]": "1" });
+    const params = new URLSearchParams({ mode: "payment", success_url: `${env("SITE_URL")}/portal?payment=success`, cancel_url: `${env("SITE_URL")}/portal?payment=cancelled`, "metadata[invoiceId]": String(invoice.id), "line_items[0][price_data][currency]": "usd", "line_items[0][price_data][product_data][name]": invoice.description || "Automotive service", "line_items[0][price_data][unit_amount]": String(Math.round(Number(invoice.amount) * 100)), "line_items[0][quantity]": "1" });
     const stripe = await fetch("https://api.stripe.com/v1/checkout/sessions", { method: "POST", headers: { Authorization: `Bearer ${env("STRIPE_SECRET_KEY")}`, "Content-Type": "application/x-www-form-urlencoded" }, body: params });
     const session = await stripe.json();
     if (!stripe.ok) return json({ error: session.error?.message || "Stripe checkout failed" }, 502);
@@ -250,6 +257,37 @@ async function functionRoute(event, name) {
   return json({ error: `Unsupported function: ${name}` }, 404);
 }
 
+async function stripeWebhook(event) {
+  const signature = header(event, "stripe-signature");
+  const secret = env("STRIPE_WEBHOOK_SECRET");
+  if (!signature || !secret) return json({ error: "Stripe webhook is not configured" }, 503);
+
+  const payload = await readRawBody(event);
+  const timestamp = signature.match(/(?:^|,)t=(\d+)/)?.[1];
+  const received = signature.match(/(?:^|,)v1=([^,]+)/)?.[1];
+  if (!timestamp || !received) return json({ error: "Invalid Stripe signature" }, 400);
+  const expected = createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const receivedBuffer = Buffer.from(received, "utf8");
+  if (expectedBuffer.length !== receivedBuffer.length || !timingSafeEqual(expectedBuffer, receivedBuffer)) {
+    return json({ error: "Invalid Stripe signature" }, 400);
+  }
+
+  let eventBody;
+  try { eventBody = JSON.parse(payload); } catch { return json({ error: "Invalid webhook body" }, 400); }
+  if (eventBody.type === "checkout.session.completed") {
+    const session = eventBody.data?.object || {};
+    const invoiceId = session.metadata?.invoiceId;
+    if (invoiceId) {
+      await supabase(`/rest/v1/invoices?id=eq.${encodeURIComponent(invoiceId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "paid", paid_at: new Date().toISOString(), payment_reference: session.id }),
+      });
+    }
+  }
+  return json({ received: true });
+}
+
 export async function handler(event) {
   try {
     const requestUrl = event.url || event.rawUrl;
@@ -259,6 +297,7 @@ export async function handler(event) {
     const routedPath = queryString(event).get("path") || rawPath;
     const path = routedPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
     const parts = path.split("/").filter(Boolean);
+    if (parts[0] === "stripe" && parts[1] === "webhook") return await stripeWebhook(event);
     if (parts[0] === "auth") return await authRoute(event, parts);
     if (parts[0] === "entities" && parts[1]) return await entityRoute(event, parts);
     if (parts[0] === "functions" && parts[1]) return await functionRoute(event, parts[1]);
