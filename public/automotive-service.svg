@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Automotive service bay</title>
+  <desc id="desc">Abstract illustration of a vehicle service bay with a key and diagnostic grid.</desc>
+  <rect width="1200" height="800" fill="#080d12"/>
+  <path d="M0 590h1200M0 650h1200M0 710h1200M160 0v800M340 0v800M520 0v800M700 0v800M880 0v800M1060 0v800" stroke="#12323b" stroke-width="2"/>
+  <path d="M105 545h990l-120-175H230z" fill="#17242a" stroke="#00d9e8" stroke-width="8"/>
+  <path d="M245 370l90-105h530l90 105" fill="#24373d" stroke="#8debf2" stroke-width="6"/>
+  <path d="M310 370v-70h150v70M740 370v-70h150v70" fill="#071014" stroke="#00d9e8" stroke-width="5"/>
+  <circle cx="310" cy="555" r="72" fill="#071014" stroke="#ffb84d" stroke-width="12"/>
+  <circle cx="890" cy="555" r="72" fill="#071014" stroke="#ffb84d" stroke-width="12"/>
+  <path d="M985 140c-42-42-111-42-153 0l38 38-89 89 77 77 89-89 38 38c42-42 42-111 0-153z" fill="none" stroke="#00d9e8" stroke-width="18" stroke-linejoin="round"/>
+  <text x="600" y="115" fill="#8debf2" font-family="monospace" font-size="34" text-anchor="middle" letter-spacing="8">SKC // SERVICE BAY</text>
+</svg>

@@ -9,7 +9,7 @@ import MobileTabBar from "./MobileTabBar";
 import UniversalAccess from "./UniversalAccess";
 import { useAuth } from "@/lib/AuthContext";
 
-const LOGO = "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg";
+const LOGO = "/automotive-service.svg";
 
 interface NavLink { key: string; to: string }
 

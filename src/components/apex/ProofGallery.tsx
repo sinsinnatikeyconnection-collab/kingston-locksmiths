@@ -15,19 +15,19 @@ interface CaseStudyItem {
 
 const FALLBACK: CaseStudyItem[] = [
   {
-    image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/810be801f_generated_a0266cb4.png",
+    image_url: "/automotive-service.svg",
     side: "Digital",
     title: "EEPROM desolder & read under microscope",
     tag: "IMMO_CLONE_SUCCESSFUL: 2023 BMW M4",
   },
   {
-    image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/285e31bde_generated_c44584bf.png",
+    image_url: "/automotive-service.svg",
     side: "Physical",
     title: "Engine pull & full powertrain teardown",
     tag: "ENGINE_SWAP_COMPLETE: 2019 FORD MUSTANG GT",
   },
   {
-    image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/cd81e7695_generated_b781c1d2.png",
+    image_url: "/automotive-service.svg",
     side: "Digital",
     title: "Laser-cut key fob matched at OBD2 port",
     tag: "KEY_GEN_SUCCESSFUL: 2021 MERCEDES E-CLASS",

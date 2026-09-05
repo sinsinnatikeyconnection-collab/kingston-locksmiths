@@ -19,22 +19,22 @@ const FALLBACK: Case[] = [
     title: "Engine bay rebuild after wiring-loom fire",
     vehicle: "2017 VW Golf GTI",
     tag: "WIRING_RESTORE_COMPLETE",
-    before_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/285e31bde_generated_c44584bf.png",
-    after_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/810be801f_generated_a0266cb4.png",
+    before_image_url: "/automotive-service.svg",
+    after_image_url: "/automotive-service.svg",
   },
   {
     title: "Corroded BCM rescued — no dealer tow needed",
     vehicle: "2019 Dodge Charger",
     tag: "BCM_BYPASS_SUCCESSFUL",
-    before_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/cd81e7695_generated_b781c1d2.png",
-    after_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/810be801f_generated_a0266cb4.png",
+    before_image_url: "/automotive-service.svg",
+    after_image_url: "/automotive-service.svg",
   },
   {
     title: "All-keys-lost → fresh cut & programmed fob",
     vehicle: "2021 Mercedes E-Class",
     tag: "KEY_GEN_SUCCESSFUL",
-    before_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/810be801f_generated_a0266cb4.png",
-    after_image_url: "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/cd81e7695_generated_b781c1d2.png",
+    before_image_url: "/automotive-service.svg",
+    after_image_url: "/automotive-service.svg",
   },
 ];
 

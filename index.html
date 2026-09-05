@@ -1,11 +1,9 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" sizes="64x64" />
-    <link rel="apple-touch-icon" href="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg" />
+    <link rel="icon" type="image/jpeg" href="/automotive-service.svg" sizes="64x64" />
+    <link rel="apple-touch-icon" href="/automotive-service.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- Pre-hydration boot screen: dark cyberpunk paint so the page is never a
          blank white shell before the JS/CSS bundle lands. React swaps #root on mount. -->
@@ -41,7 +39,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
     <meta property="og:description" content="Cincinnati's most advanced automotive engineering platform. Lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, performance tuning, mail-in module service & mobile lockout. 513-568-2744 / 812-571-5765." />
     <meta property="og:url" content="https://www.kingston-locksmiths.com/" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
+    <meta property="og:image" content="/automotive-service.svg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Sinsinnati Key Connection — Cincinnati automotive engineering & locksmith" />
@@ -50,7 +48,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Sinsinnati Key Connection | Kingston's Locksmiths" />
     <meta name="twitter:description" content="Cincinnati's advanced automotive engineering platform. Lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, performance tuning, mail-in service & mobile lockout. 513-568-2744 / 812-571-5765." />
-    <meta name="twitter:image" content="https://media.db.com/images/public/6a6890ed0920bc884c73a76a/e0936b3e2_generated_image.png" />
+    <meta name="twitter:image" content="/automotive-service.svg" />
 
     <!-- Structured Data: Locksmith / LocalBusiness -->
     <script type="application/ld+json">
@@ -90,7 +88,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
       "name": "Sinsinnati Key Connection",
       "alternateName": "Kingston's Locksmiths",
       "url": "https://www.kingston-locksmiths.com/",
-      "logo": "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg",
+      "logo": "/automotive-service.svg",
       "email": ["tcincy23@gmail.com", "sinsinnatikeyconnection@gmail.com"],
       "telephone": ["+15135682744", "+18125715765"],
       "areaServed": { "@type": "AdministrativeArea", "name": "Greater Cincinnati Tri-State" },

@@ -4,7 +4,7 @@ import { ChevronRight, Phone, MousePointer2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 
 const HERO_IMG =
-  "https://media.db.com/images/public/6a6890ed0920bc884c73a76a/a9927a5c5_generated_0d53ba2f.png";
+  "/automotive-service.svg";
 
 interface SpotPos { x: number; y: number }
 
