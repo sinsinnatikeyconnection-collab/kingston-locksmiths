@@ -230,7 +230,9 @@ async function functionRoute(event, name) {
 
 export async function handler(event) {
   try {
-    const rawPath = event.path || new URL(event.rawUrl || "https://localhost/api").pathname;
+    const rawPath = event.rawUrl
+      ? new URL(event.rawUrl).pathname
+      : (event.path || "/api");
     const path = rawPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
     const parts = path.split("/").filter(Boolean);
     if (parts[0] === "auth") return await authRoute(event, parts);
