@@ -244,10 +244,12 @@ async function functionRoute(event, name) {
 
 export async function handler(event) {
   try {
-    const rawPath = event.url || event.rawUrl
-      ? new URL(event.url || event.rawUrl).pathname
+    const requestUrl = event.url || event.rawUrl;
+    const rawPath = requestUrl
+      ? new URL(requestUrl).pathname
       : (event.path || "/api");
-    const path = rawPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
+    const routedPath = queryString(event).get("path") || rawPath;
+    const path = routedPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
     const parts = path.split("/").filter(Boolean);
     if (parts[0] === "auth") return await authRoute(event, parts);
     if (parts[0] === "entities" && parts[1]) return await entityRoute(event, parts);
