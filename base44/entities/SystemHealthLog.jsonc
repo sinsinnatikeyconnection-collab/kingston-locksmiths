@@ -1,0 +1,73 @@
+{
+  "name": "SystemHealthLog",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "Code"
+    },
+    "message": {
+      "type": "string",
+      "title": "Message"
+    },
+    "stack": {
+      "type": "string",
+      "title": "Stack"
+    },
+    "component": {
+      "type": "string",
+      "title": "Component"
+    },
+    "action": {
+      "type": "string",
+      "title": "Action"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "default": "error",
+      "title": "Severity"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "frontend",
+        "backend"
+      ],
+      "default": "frontend",
+      "title": "Source"
+    }
+  },
+  "required": [
+    "code",
+    "message",
+    "component"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

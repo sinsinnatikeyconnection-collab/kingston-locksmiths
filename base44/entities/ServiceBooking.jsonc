@@ -1,0 +1,139 @@
+{
+  "name": "ServiceBooking",
+  "type": "object",
+  "properties": {
+    "year": {
+      "type": "string",
+      "title": "Year"
+    },
+    "make": {
+      "type": "string",
+      "title": "Make"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "engine_size": {
+      "type": "string",
+      "title": "Engine Size"
+    },
+    "vin": {
+      "type": "string",
+      "title": "VIN"
+    },
+    "problem_category": {
+      "type": "string",
+      "enum": [
+        "Lost Keys / Security & Lockout",
+        "Electrical & Diagnostics",
+        "Mechanical Repair",
+        "Performance & Tuning"
+      ],
+      "title": "Problem Category"
+    },
+    "problem_detail": {
+      "type": "string",
+      "title": "Problem Detail"
+    },
+    "problem_location": {
+      "type": "string",
+      "title": "Problem Location"
+    },
+    "photo_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Photo URLs"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "Emergency / Mobile Service",
+        "Shop Drop-off / Standard Appointment",
+        "Mail-In Service"
+      ],
+      "title": "Urgency"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Scheduled Date"
+    },
+    "customer_name": {
+      "type": "string",
+      "title": "Customer Name"
+    },
+    "customer_email": {
+      "type": "string",
+      "format": "email",
+      "title": "Customer Email"
+    },
+    "customer_phone": {
+      "type": "string",
+      "title": "Customer Phone"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "reviewing",
+        "scheduled",
+        "completed"
+      ],
+      "default": "received",
+      "title": "Status"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "title": "Idempotency Key"
+    }
+  },
+  "required": [
+    "year",
+    "make",
+    "model",
+    "vin",
+    "problem_category",
+    "urgency",
+    "customer_name",
+    "customer_email",
+    "customer_phone"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.customer_email": "{{user.email}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {},
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

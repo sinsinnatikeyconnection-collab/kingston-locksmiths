@@ -1,0 +1,14 @@
+{
+  "name": "Sinsinnati Key Connection",
+  "short_name": "SKC",
+  "description": "Cincinnati automotive engineering & locksmith platform — lost keys, key programming, immobilizer bypass, ECU/BCM cloning, EEPROM/MCU programming, engine swaps, mail-in service & mobile lockout.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080809",
+  "theme_color": "#080809",
+  "icons": [
+    { "src": "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" },
+    { "src": "https://media.base44.com/images/public/6a6890ed0920bc884c73a76a/ebfefc0d4_logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "name": "Certificate",
+  "type": "object",
+  "properties": {
+    "certificate_code": {
+      "type": "string",
+      "title": "Certificate Code"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email",
+      "title": "Owner Email"
+    },
+    "vehicle": {
+      "type": "string",
+      "title": "Vehicle"
+    },
+    "vin": {
+      "type": "string",
+      "title": "VIN"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "ECU Clone",
+        "Cluster Calibration",
+        "Engine Swap",
+        "Key Programming",
+        "Module Programming",
+        "Other"
+      ],
+      "title": "Service Type"
+    },
+    "mileage_at_service": {
+      "type": "string",
+      "title": "Mileage At Service"
+    },
+    "technician_name": {
+      "type": "string",
+      "title": "Technician Name"
+    },
+    "performed_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Performed Date"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "certificate_code",
+    "owner_email",
+    "vehicle",
+    "service_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

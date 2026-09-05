@@ -1,0 +1,88 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_code": {
+      "type": "string",
+      "title": "Invoice Code"
+    },
+    "owner_email": {
+      "type": "string",
+      "format": "email",
+      "title": "Owner Email"
+    },
+    "owner_email_lower": {
+      "type": "string",
+      "title": "Owner Email Lower"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "unpaid",
+        "paid"
+      ],
+      "default": "unpaid",
+      "title": "Status"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Due Date"
+    },
+    "checkout_session_id": {
+      "type": "string",
+      "title": "Checkout Session Id"
+    },
+    "checkout_url": {
+      "type": "string",
+      "title": "Checkout Url"
+    }
+  },
+  "required": [
+    "invoice_code",
+    "owner_email",
+    "description",
+    "amount",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_email_lower": "{{user.email}}"
+        },
+        {
+          "data.owner_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

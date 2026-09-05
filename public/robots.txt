@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-dashboard
+Disallow: /godmode
+Disallow: /portal
+
+Sitemap: https://www.kingston-locksmiths.com/sitemap.xml

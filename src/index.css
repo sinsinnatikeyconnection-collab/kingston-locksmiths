@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 3.1%;
+    --foreground: 240 3% 94.1%;
+    --card: 240 5% 8%;
+    --card-foreground: 240 3% 94.1%;
+    --popover: 240 5% 8%;
+    --popover-foreground: 240 3% 94.1%;
+    --primary: 187 100% 50%;
+    --primary-foreground: 0 0% 3.1%;
+    --secondary: 240 5% 11%;
+    --secondary-foreground: 240 3% 94.1%;
+    --muted: 240 5% 11%;
+    --muted-foreground: 240 3% 55%;
+    --accent: 240 5% 14%;
+    --accent-foreground: 240 3% 94.1%;
+    --destructive: 13 100% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 16%;
+    --input: 240 5% 16%;
+    --ring: 187 100% 50%;
+    --radius: 0.25rem;
+    --font-heading: 'Archivo Black', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Archivo Black', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overscroll-behavior: none;
+  }
+
+  :root[data-daynight="day"] { --primary: 187 100% 52%; }
+  :root[data-daynight="night"] { --primary: 190 100% 44%; }
+
+  body {
+    @apply bg-background text-foreground font-body;
+    background-color: #080809;
+    overscroll-behavior: none;
+  }
+
+  /* Keep interactive controls unselectable (iOS long-press menu suppression),
+     while leaving paragraph text, vehicle details, and inputs copyable. */
+  button,
+  a,
+  [role="button"],
+  nav,
+  svg,
+  img,
+  label.ui-select-keep {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: 'Archivo Black', ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .text-glow-cyan {
+    text-shadow: 0 0 18px rgba(0, 229, 255, 0.55), 0 0 4px rgba(0, 229, 255, 0.8);
+  }
+  .glow-cyan {
+    box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.5), 0 0 22px rgba(0, 229, 255, 0.25);
+  }
+  .glow-heat {
+    box-shadow: 0 0 0 1px rgba(255, 62, 0, 0.5), 0 0 22px rgba(255, 62, 0, 0.25);
+  }
+  .circuit-grid {
+    background-image:
+      linear-gradient(to right, rgba(0, 229, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .scanline {
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 229, 255, 0.5) 50%, transparent 100%);
+  }
+}
+
+@keyframes bitstream {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes laser-wipe {
+  0% { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-bitstream {
+  animation: bitstream 6s linear infinite;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s ease-out infinite;
+}
+.animate-laser-wipe {
+  animation: laser-wipe 0.8s ease-out forwards;
+}
+.animate-ticker {
+  animation: ticker 30s linear infinite;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080809;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1c1e;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00e5ff;
+}
