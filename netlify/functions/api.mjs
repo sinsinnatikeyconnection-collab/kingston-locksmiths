@@ -9,8 +9,21 @@ const json = (body, statusCode = 200) => new Response(JSON.stringify(body), {
   headers: JSON_HEADERS,
 });
 
-const readBody = (event) => {
-  try { return event.body ? JSON.parse(event.body) : {}; } catch { return {}; }
+const readBody = async (event) => {
+  try {
+    if (event?.json && typeof event.json === "function") return await event.json();
+    return event.body ? JSON.parse(event.body) : {};
+  } catch { return {}; }
+};
+
+const header = (event, name) => {
+  if (event?.headers?.get) return event.headers.get(name) || "";
+  return event?.headers?.[name] || event?.headers?.[name.toLowerCase()] || "";
+};
+
+const queryString = (event) => {
+  if (event?.url) return new URL(event.url).searchParams;
+  return new URLSearchParams(event?.rawQuery || "");
 };
 
 const tableName = (entity) => {
@@ -51,7 +64,7 @@ async function supabase(path, options = {}) {
 }
 
 async function currentUser(event) {
-  const token = event.headers?.authorization || event.headers?.Authorization;
+  const token = header(event, "authorization");
   if (!token) return null;
   const response = await fetch(`${supabaseUrl()}/auth/v1/user`, {
     headers: { apikey: serviceKey(), Authorization: token },
@@ -60,7 +73,7 @@ async function currentUser(event) {
 }
 
 async function authRoute(event, parts) {
-  const body = readBody(event);
+  const body = await readBody(event);
   if (parts[1] === "me") {
     const user = await currentUser(event);
     if (!user) return json({ error: "Authentication required" }, 401);
@@ -68,8 +81,9 @@ async function authRoute(event, parts) {
   }
   if (parts[1] === "provider") {
     const provider = encodeURIComponent(parts[2] || "google");
-    const returnTo = new URLSearchParams(event.rawQuery || "").get("returnTo") || "/";
-    const redirectTo = `${event.headers?.host ? `https://${event.headers.host}` : ""}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
+    const returnTo = queryString(event).get("returnTo") || "/";
+    const origin = event?.url ? new URL(event.url).origin : `https://${header(event, "host")}`;
+    const redirectTo = `${origin}/api/auth/callback?returnTo=${encodeURIComponent(returnTo)}`;
     const url = `${supabaseUrl()}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo)}`;
     return new Response(null, { status: 302, headers: { Location: url } });
   }
@@ -107,7 +121,7 @@ async function entityRoute(event, parts) {
   const entity = parts[1];
   const table = tableName(entity);
   const id = parts[2];
-  const method = event.httpMethod;
+  const method = event.httpMethod || event.method || "GET";
   const publicReads = new Set(["BeforeAfterCase", "CaseStudy", "KbArticle"]);
   const publicCreates = new Set(["ContactMessage", "ServiceBooking", "MailInRequest"]);
   const user = await currentUser(event);
@@ -116,7 +130,7 @@ async function entityRoute(event, parts) {
   }
   if (method === "GET" && id) return json(await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}&select=*`).then((rows) => rows[0] || null));
   if (method === "GET") {
-    const query = new URLSearchParams(event.rawQuery || "");
+    const query = queryString(event);
     const limit = Math.min(Number(query.get("limit") || 100), 200);
     const order = query.get("sort") || "-created_date";
     const column = order.replace(/^-/, "");
@@ -124,12 +138,12 @@ async function entityRoute(event, parts) {
     return json(await supabase(`/rest/v1/${table}?select=*&order=${column}.${direction}&limit=${limit}`));
   }
   if (method === "POST" && parts[2] === "search") {
-    const filters = readBody(event);
+    const filters = await readBody(event);
     const query = Object.entries(filters).map(([key, value]) => `${key}=eq.${encodeURIComponent(String(value))}`).join("&");
     return json(await supabase(`/rest/v1/${table}?select=*&${query}`));
   }
-  if (method === "POST") return json(await supabase(`/rest/v1/${table}`, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(readBody(event)) }).then((rows) => rows[0] || rows));
-  if (method === "PATCH" && id) return json(await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(readBody(event)) }).then((rows) => rows[0] || null));
+  if (method === "POST") return json(await supabase(`/rest/v1/${table}`, { method: "POST", headers: { Prefer: "return=representation" }, body: JSON.stringify(await readBody(event)) }).then((rows) => rows[0] || rows));
+  if (method === "PATCH" && id) return json(await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(await readBody(event)) }).then((rows) => rows[0] || null));
   if (method === "DELETE" && id) return json({ ok: true, deleted: await supabase(`/rest/v1/${table}?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=representation" } }) });
   return json({ error: "Unsupported entity operation" }, 405);
 }
@@ -167,7 +181,7 @@ async function aiResponse(body) {
 }
 
 async function functionRoute(event, name) {
-  const body = readBody(event);
+  const body = await readBody(event);
   if (name === "decodeVin") {
     const vin = String(body.vin || "").toUpperCase().trim();
     if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) return json({ error: "Invalid VIN" }, 400);
@@ -230,8 +244,8 @@ async function functionRoute(event, name) {
 
 export async function handler(event) {
   try {
-    const rawPath = event.rawUrl
-      ? new URL(event.rawUrl).pathname
+    const rawPath = event.url || event.rawUrl
+      ? new URL(event.url || event.rawUrl).pathname
       : (event.path || "/api");
     const path = rawPath.replace(/^\/\.netlify\/functions\/api\/?/, "").replace(/^\/api\/?/, "");
     const parts = path.split("/").filter(Boolean);
