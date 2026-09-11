@@ -1,7 +1,7 @@
 
 // Shared entity boundary types for the Sinsinnati Key Connection app.
 //
-// These mirror the JSON-schema entities in base44/entities/*. Because every
+// These mirror the JSON entity records returned by the application API. Because every
 // stored record also carries built-in fields (id, created_date,
 // updated_date, created_by_id), each interface extends EntityRecordBase so
 // consumers (AiAssistant, IntakeForm, Portal, Admin) share one source of
@@ -14,7 +14,7 @@ export interface EntityRecordBase {
   created_by_id?: string;
 }
 
-// Shape returned by db.auth.me() — mirrors the built-in User entity.
+// Shape returned by the API's auth/me endpoint.
 export interface AppUser {
   id: string;
   email: string;

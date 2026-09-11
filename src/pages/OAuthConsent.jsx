@@ -5,7 +5,7 @@ import { ShieldCheck, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
 // App-side OAuth consent page for the app's MCP server. The platform redirects
-// AI clients here (see base44/mcp/config.json `consent_path`) with an opaque
+// AI clients here with an opaque
 // `ctx` handle — the authorization request itself lives on the server. This page
 // gates on the app-user session, fetches the display info for that handle, shows
 // the categories of access being granted, and posts the approve/deny decision.
@@ -46,7 +46,7 @@ export default function OAuthConsent() {
         }
         const data = await res.json();
         // Gate on the server's auth result, NOT db.auth.isAuthenticated():
-        // the SDK check runs the bearer path, so a cookie-only session (platform
+        // the auth check runs the bearer path, so a cookie-only session
         // login/SSO, or a private app with a stale localStorage token) would read
         // as signed-out and redirect — even though /consent-info just
         // authenticated this same request via its cookie fallback. data.authenticated

@@ -1,4 +1,4 @@
-import db from "@/api/base44Client";
+import db from "@/api/apiClient";
 
 import React, { useEffect, useMemo, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";

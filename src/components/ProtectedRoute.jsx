@@ -26,7 +26,16 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     }
-    return unauthenticatedElement;
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6 text-center">
+        <div className="max-w-md">
+          <h1 className="text-xl font-semibold">Service temporarily unavailable</h1>
+          <p className="mt-3 text-muted-foreground">
+            {authError.message || 'The application API could not be reached. Please try again later.'}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

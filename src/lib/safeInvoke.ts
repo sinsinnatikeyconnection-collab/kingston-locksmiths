@@ -1,5 +1,5 @@
 // Defensive, strictly-typed Result + retry-on-network-dropout wrapper for
-// backend/SDK calls. Network dropouts (AbortError / TypeError "Failed to fetch")
+// backend calls. Network dropouts (AbortError / TypeError "Failed to fetch")
 // are retried with exponential backoff; non-network errors surface immediately
 // as an Err. safeInvoke NEVER throws to the caller — every outcome is a typed
 // Result, so a caller can never produce an unhandled exception from a call.
