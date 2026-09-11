@@ -1,6 +1,0 @@
-.env
-.env.*
-dist
-*.zip
-export-report.json
-node_modules

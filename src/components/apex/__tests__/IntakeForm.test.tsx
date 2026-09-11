@@ -3,9 +3,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Mock the platform boundaries so the component test never touches the network
-// or the Base44 SDK. Only the bare interfaces IntakeForm touches are stubbed.
-vi.mock("@/api/base44Client", () => ({
-  base44: {
+// Only the bare API interfaces IntakeForm touches are stubbed.
+vi.mock("@/api/apiClient", () => ({
+  default: {
     integrations: { Core: { UploadFile: vi.fn(() => Promise.resolve({ file_url: "mock://upload" })) } },
     functions: { invoke: vi.fn() },
     entities: {},

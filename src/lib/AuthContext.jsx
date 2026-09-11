@@ -1,4 +1,4 @@
-import db from "@/api/base44Client";
+import db from "@/api/apiClient";
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
+      setAuthError(null);
       const currentUser = await db.auth.me();
       setUser(currentUser);
       setIsAuthenticated(Boolean(currentUser));
@@ -38,6 +39,10 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(false);
       setAuthChecked(true);
       
+      setAuthError(error?.status === 401 ? null : {
+        type: 'api_unavailable',
+        message: error?.message || 'Application API is unavailable.',
+      });
       setUser(null);
     }
   };
@@ -47,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
+      // Clear the local session and redirect to the login screen.
       db.auth.logout(window.location.href);
     } else {
       // Just remove the token without redirect
@@ -56,7 +61,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
     db.auth.redirectToLogin(window.location.href);
   };
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 // The boundary logs a fault to the backend on catch — mock it so the test never
-// makes a real call and never depends on the Base44 SDK runtime.
+// makes a real call and never depends on a platform SDK runtime.
 vi.mock("@/lib/logSystemHealth", () => ({
   logSystemHealth: vi.fn(),
 }));

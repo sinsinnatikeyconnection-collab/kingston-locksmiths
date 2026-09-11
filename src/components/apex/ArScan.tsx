@@ -85,6 +85,7 @@ export default function ArScan() {
   const [xrayOn, setXrayOn] = useState<boolean>(true);
   const [active, setActive] = useState<Marker | null>(null);
   const [snapUrl, setSnapUrl] = useState<string>("");
+  const [motionScore, setMotionScore] = useState<number | null>(null);
 
   const { data: decoded } = useVinDecode(VIN_RE.test(vin) ? vin : "");
 
@@ -127,6 +128,7 @@ export default function ArScan() {
     setPhase("select");
     setActive(null);
     setSnapUrl("");
+    setMotionScore(null);
   }, []);
 
   const start = useCallback(async (face: Facing) => {
@@ -187,6 +189,34 @@ export default function ArScan() {
       const p = videoRef.current.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     }
+  }, [phase]);
+
+  // Motion is only used as a framing aid. It does not identify a module or
+  // diagnose an electrical fault.
+  useEffect(() => {
+    if (phase !== "live") return;
+    const video = videoRef.current;
+    if (!video) return;
+    const sample = document.createElement("canvas");
+    sample.width = 32;
+    sample.height = 24;
+    const ctx = sample.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    let previous: Uint8ClampedArray | null = null;
+    const timer = window.setInterval(() => {
+      if (video.readyState < 2) return;
+      ctx.drawImage(video, 0, 0, sample.width, sample.height);
+      const current = ctx.getImageData(0, 0, sample.width, sample.height).data;
+      if (previous) {
+        let delta = 0;
+        for (let i = 0; i < current.length; i += 4) {
+          delta += Math.abs(current[i] - previous[i]) + Math.abs(current[i + 1] - previous[i + 1]) + Math.abs(current[i + 2] - previous[i + 2]);
+        }
+        setMotionScore(Math.min(100, Math.round((delta / (current.length / 4) / 255) * 100)));
+      }
+      previous = new Uint8ClampedArray(current);
+    }, 500);
+    return () => window.clearInterval(timer);
   }, [phase]);
 
   // cleanup on unmount
@@ -503,6 +533,11 @@ export default function ArScan() {
           <div className="absolute top-3 left-3 font-mono text-[9px] uppercase tracking-widest text-cyan/70 pointer-events-none">
             .AR.LOCK · {xrayOn ? "X-RAY" : "NORMAL"}
           </div>
+          {phase === "live" && motionScore !== null && (
+            <div className="absolute top-3 right-3 max-w-[11rem] bg-black/55 px-2 py-1 font-mono text-[9px] uppercase tracking-wider text-cyan/80 pointer-events-none">
+              Frame motion {motionScore}% · steady camera for capture
+            </div>
+          )}
 
           {phase === "acquiring" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60">
